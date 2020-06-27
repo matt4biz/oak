@@ -1,0 +1,283 @@
+stack positions
+
+	x == tos
+	y
+	z
+	w
+
+evaluation
+
+   whenever we hit <return> we evaluate
+   and print the result, and assign it to a
+   numbered var e.g., $12 for the 12th line
+
+precision
+
+   we need a way to set the precision, e.g, 4.3
+   
+   what about "4.3" format, or ".3" format
+   or maybe just use standard printf format strings
+   
+   e.g., "%d" format (which will truncate floats)
+
+digits - act as a push
+
+    [0-9]+       decimal
+	0x[0-9a-f]+  hexadecimal
+	0x[0-1]+     binary
+
+constants
+
+    eps
+	pi
+	phi
+	NaN
+
+unary ops - pop one, push one
+
+	~      x = ~x bitwise
+	!      x = !x logically
+
+	sqrt   x=sqrt(x)
+
+	ex     x = e ^ x        // maybe exp
+	xp     x = 10 ^ x       // maybe pow10
+
+	chs    x = -x
+	sq     x = x ^ 2
+	ln     x = ln(x)
+	log    x = log(x) [base10]
+	abs    x = abs(x)
+	sin    x = sin(x)
+	cos    x = cos(x)
+	tan    x = tan(x)
+	fact   x = x!
+	
+	sign
+	ceil
+	floor
+	round
+	
+	rand
+
+binary ops - pop two, push one
+
+	+      x = y + x
+	-      x = y - x
+	*      x = y * x
+	/      x = y / x
+
+	max
+	min
+
+    %      x = y % x
+	**     x = y ** x
+
+	// really? not mod?
+
+	perc   x = y * x/100  
+	delp   x = (x-y)/y * 100
+
+	comb   x = C(y,x)
+	perm   x = P(y,x)
+
+    &    x = y & x
+	|     x = y | x
+	^    x = y ^ x
+    &^   x = y &^ x
+    <<   x = y << x
+	>>   x = y >> x
+
+comparison -- all return BOOL
+
+    <      x = bool(x < y)
+	<=
+	>
+	>=
+	==
+	!=
+
+leftover operators we're holding onto
+
+	, (comma)
+	` (backtick)
+	_ (underscore)
+
+    parentheses ()     // save for set
+	braces {}
+
+	:=
+	<>
+	
+	||
+	&&
+
+stack ops
+
+	clx    x = 0                        replace tos
+    dup    w, z, y, x = z, y, x, x      push tos
+	dup2   w, z, y, x = y, x, y, x      push copy of top two values
+	xchg   x <=> y                      swap
+	drop   z, y, x = w, z, y            drop tos (pop)
+	roll   w, z, y, x = z, y, x, w
+	last   x = last(x)                  we need a magic x' = x from last op
+	dump   print out the stack, labeling top 4 positions
+	       6
+		   5
+		   w
+		   z
+		   y
+		   x
+
+    so, whenever we do an op using x, we put that into x' before
+	we change the stack (i.e., put a new value into tos);
+	so really
+		y x +
+	is copy tos -> x', pop two, add, push one
+	
+	// we'll handle this as op-pop which pops tos into x and x'
+	// or we could have $0 be the same as last(x)
+
+memory ops - store into a one-letter variable
+	
+    $name !     pop x & store into variable (dup to keep it)
+	$name @     recall variable onto stack (push)
+
+=====================
+
+conversions - what are we doing with these?
+            - what about modes?
+
+	mode is a special variable, e.g., "deg" mode !
+	
+	conversion operators (noop if it's the same mode)
+	
+	deg 
+	rad 
+	grd
+
+	base is a special variable, e.g., 16 base !
+    which causes output to be in hex until changed	
+
+=====================
+
+strings
+
+    'x'       push the rune equivalent to printable x
+	"xyz"     push the string with these characters (equal to a vector of char values)
+
+    len       x = len(x)
+
+=====================
+	
+vectors
+
+    [ numbers ... ]  makes a vector into tos
+
+    basic arithmetic ops: if one arg is scalar, multiply
+	all vector elements by that scalar; if both are vectors,
+	do the op element-by-element
+	
+	comparison ops should result in a BOOL vector
+	
+	// what do we do if the vectors don't match in size??
+	
+	so if x is a vector, dup * sqrt calculates the L2 norm
+	
+	index with .
+	e.g., 3. picks v[3]
+	
+	reduce uses \ and another operator
+	
+	\+       x = sum(x)
+	\*       x = product(x)
+
+    iota     x = vector of length x [0 .. x-1]              // 3 iota 1 + will generate [1,2,3]
+	unit     x = vector of length x [1 .. 1]
+	norm     x = the L2 norm (e.g, length as distance)
+
+	len      x = len(x)
+    sum      x = sum(x)
+	ave      x = ave(x)
+    sdev     x = stddev(x)
+
+	// use last(x) to get the vector back, or dup, or
+	// store it into a register
+
+    dot      x = y dot-product x
+	sel      x = select(y, x) where x is BOOL vector
+
+// at the moment, we're not doing matrix operations
+
+=====================
+
+logic (optional -- maybe this is too much)
+
+    ?       x = x ? y : z    so 1 12 4 3 < ?  yields 12
+                             i.e., else, then, if on stack
+
+    #       :word <number/variable> #
+	
+	// will execute the word that number of times
+	
+    // can we have iteration with #
+	// e.g., <something> 12 # means do it 12 times?
+	//
+	// not really, since we don't have logic structures
+	
+=====================
+
+define word - make a macro
+
+    :<name> operations+ ;
+
+    for example,
+	
+	:norm dup * sqrt;
+	
+	defines the norm operator (for a scalar, == abs)
+	
+	
+	// do we then refer to word as :word, or just word ??
+	// I think :word will be confusing
+	
+	// also, what about replacing an existing word?
+	// I think we should get a duplicate def'n warning
+	//
+	// and so have some undef command for non-default words
+	
+================================================================
+================================================================
+
+lexical
+
+   [digit]+
+   
+   0x[digit]+
+   0b[digit]+
+
+   [letter][letter-digit]*
+   
+   symbols -- grab as many as we can (maximal munch)
+
+   i.e., < vs <=
+
+   character & string ' "
+
+   vector [ elements ]
+   elements could be variables (which means they're auto recalled)
+
+================================================================
+================================================================
+
+syntax
+
+   purely postfix evaluation
+   
+   any variable not defined = 0
+
+   the stack is unlimited
+   
+   we barf if the stack is empty
+   
+   what about NaN

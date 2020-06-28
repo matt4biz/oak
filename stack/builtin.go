@@ -110,3 +110,7 @@ func (m *Machine) SetEngineering(d int) {
 	m.disp = engineering
 	m.digits = d
 }
+
+func (m *Machine) SetRadians() {
+	m.mode = radians
+}

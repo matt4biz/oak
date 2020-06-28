@@ -83,16 +83,20 @@ func fromInput(r io.ReadCloser) {
 
 func main() {
 	var (
-		fn    string
-		input string
-		fixed int
-		scip  int
+		fn      string
+		input   string
+		fixed   int
+		scip    int
+		engr    int
+		radians bool
 	)
 
 	flag.StringVar(&fn, "f", "", "command file")
 	flag.StringVar(&input, "e", "", "command text")
 	flag.IntVar(&fixed, "fix", 0, "fixed precision")
 	flag.IntVar(&scip, "sci", 0, "scientific precision")
+	flag.IntVar(&engr, "eng", 0, "engineering mode")
+	flag.BoolVar(&radians, "rad", false, "use radians mode")
 	flag.BoolVar(&debug, "debug", false, "show parsing")
 	flag.Parse()
 
@@ -100,6 +104,12 @@ func main() {
 		machine.SetFixed(fixed)
 	} else if scip > 0 {
 		machine.SetScientific(scip)
+	} else if engr > 0 {
+		machine.SetEngineering(engr)
+	}
+
+	if radians {
+		machine.SetRadians()
 	}
 
 	if input != "" {

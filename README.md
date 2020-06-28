@@ -209,7 +209,7 @@ and these constants
 
 There is also a single punctuation mark, where the comma (`,`) is used to separate lines of input (e.g., when using the `-e` option, below).
 
-In non-interactive input, the backtick (`` ` ``) is used to start a comment that extends to the end of the line.
+The backtick (`` ` ``) is used to start a comment that extends to the end of the line.
 
 ### Variables
 At present, only "result" variables are supported, i.e. variables in the form `$1`.
@@ -238,10 +238,13 @@ oak has only a few options
 
 	-e <input>  read input from the command line
 	-f <file>   read input from a file
-	-v          show how the line parses for debugging
 
 	-fix <num>  set fixed precison to <num> digits (e.g., %.3f)
-	-sci <num>  set scientific format to <num> digits (e.g., %.3e) 
+	-sci <num>  set scientific format to <num> digits (e.g., %.3e)
+	-eng <num>  like scientific format, but exponents are multiples of 3 only
+
+    -rad        start in radians mode for trigonometry	
+	-debug      show how the line parses for debugging
 
 For example,
 

@@ -61,7 +61,56 @@ All numbers are currently evaluated as `float64` values in base 10. oak allows i
 
 A number is always pushed onto the top of the stack.
 
-TODO: add support for binary/hexadecimal numbers and conversion.
+### Modes
+By default, trigonometry functions evaluate their arguments in degrees; the mode may be changed to radians (see "mode" below).
+
+By default, the calculator operates in base-10 floating point mode, but may be changed to an integer mode (see "base" below). 
+
+Changing the base to binary, octal, or hexadecimal has these effects:
+
+- input numbers are taken to be integers
+- the output of integers is formatted in the correct base; e.g. with a `0x` prefix for hexadecimal numbers
+
+If the base was changed by a conversion command ("bin", "oct", or "hex"):
+
+- the top of stack will be converted to an integer (truncated) when the base is changed to binary/octal/hex
+- other numbers (deeper in the stack) remain as floating point numbers unless disturbed, and will retain their full values if the mode is changed back
+
+All math is integer math while the base is not decimal, and so any operation involving a floating point number may cause it to be truncated.
+
+Truncated numbers are not restored when switching back to decimal.
+
+For example
+
+	$ oak
+	> 2.3 8 base
+	1: 2.3
+	> dec
+	2: 2.3
+	> 3+
+	3: 5.3
+	> 8 base
+	4: 5.3
+	> 2+
+	5: 007
+	> dec
+	6: 7
+
+versus
+
+	$ oak
+	> 7 3.3 hex
+	1: 0x0003
+	> +
+	2: 0x000a
+	> dec
+	3: 10
+
+Binary numbers display in multiples of 8 bits, octal in multiples of 3 digits, and hexadecimal in multiples of 4. Thus 12 will show in 8 bits, but 257 will show in 16 bits in binary mode; both will show using 4 digits in hexadecimal mode, while 65536 will show using 8 hex digits.
+
+There will be no support for converting floating point numbers into their equivalent unsigned integer form and vice versa (i.e., for debugging IEEE formats).
+
+TODO: allow input using binary/octal/hexadecimal formats, e.g. with a `0b` or `0x` prefix. Note also that bitwise operators are not yet supported.
 
 ### Commands
 
@@ -80,9 +129,9 @@ along with the following unary functions, which replace the top of stack with a 
 	chs    change sign
 	cbrt   cube root
 	ceil   ceiling
-	cos    cosine (radians)
+	cos    cosine
 	cube   cube (x ** 3)
-	deg    convert radians to degrees
+	deg    convert radians to degrees (and change the mode)
 	exp    e ** x
 	fact   factorial [using gamma(x+1)]
 	floor  floor
@@ -90,9 +139,9 @@ along with the following unary functions, which replace the top of stack with a 
 	ln     natural log
 	log    log in base 10
 	pow    10 ** x
-	rad    convert degrees to radians
+	rad    convert degrees to radians (and change the mode)
 	recp   reciprocal [1/x]
-	sin    sine (radians)
+	sin    sine
 	sqr    x ** 2
 	sqrt   square root (x ** 1/2)
 	tan    tangent
@@ -117,6 +166,8 @@ as well as these operations on the stack / machine
 	       {w,z,y,x} -> {z,y,x,x}
 	dup2   duplicate the top two stack items in order
 	       {w,z,y,x} -> {y,x,y,x}
+	eng    pop the top of stack and set engineering notation
+	       (scientific notation, but exponents are multiples of 3)
 	fix    pop the top of stack and set fixed precision
 	roll   roll the top of stack to the bottom
 	       {w,z,y,x} -> {x,w,z,y}
@@ -124,6 +175,18 @@ as well as these operations on the stack / machine
 	show   causes the top of stack to be the result
 	swap   swap the top two items
 	       {w,z,y,x} -> {w,z,x,y}
+
+and these mode/conversion operations
+
+	base   pop the top of stack and set base {2,8,10,16}
+	       (default 10)
+	mode   pop the top of stack and set the trigonometry mode
+	       {"deg","rad"} (default degrees)
+	
+	bin    convert to integer mode, base 2
+	oct    convert to integer mode, base 2
+	hex    convert to integer mode, base 2
+	dec    convert to normal (floating point) mode, base 10
 
 and these constants
 
@@ -182,8 +245,6 @@ By default, oak uses Go's default floating point representation.
 Here are a few of the possible enhancements:
 
 - add a few missing functions (e.g. acos, tanh)
-- support "degree" and "radian" modes in input
-- binary/hexadecimal input and conversion
 - bitwise operators, similar to the HP 16c
 - interest-rate calculations, similar to the HP 12c
 - statistical functions, similar to the HP 11c or 15c
@@ -191,7 +252,6 @@ Here are a few of the possible enhancements:
 - vector operations
 - user-defined variables
 - user-defined words (a la Forth), along with logic & iteration
-- offer HP-style "engineering" formatting: like scientific notation, but where the exponents are always multiples of three, e.g., `43.01e+03`
 - oh, and we need a circular slide rule mode of operation, too ;-)
 
 ## Bugs

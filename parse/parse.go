@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"oak/expr"
 	"oak/scan"
 	"oak/stack"
 )
@@ -24,12 +23,13 @@ type Parser struct {
 	debug   bool
 }
 
-func New(m *stack.Machine, s *scan.Scanner, line int, inter bool) *Parser {
+func New(m *stack.Machine, s *scan.Scanner, line int, inter, debug bool) *Parser {
 	p := Parser{
 		machine: m,
 		scanner: s,
 		line:    line,
 		inter:   inter,
+		debug:   debug,
 	}
 
 	return &p
@@ -130,18 +130,13 @@ func (p *Parser) errorf(format string, args ...interface{}) {
 }
 
 func (p *Parser) number(s string) (stack.Expr, error) {
-	v, err := strconv.ParseFloat(s, 64)
+	f, err := strconv.ParseFloat(s, 64)
 
 	if err != nil {
 		return nil, err
 	}
 
-	e := func(m *stack.Machine) error {
-		m.Push(v)
-		return nil
-	}
-
-	return e, nil
+	return stack.Number(f), nil
 }
 
 func (p *Parser) str(s string) (stack.Expr, error) {
@@ -149,28 +144,23 @@ func (p *Parser) str(s string) (stack.Expr, error) {
 		return nil, fmt.Errorf("empty string")
 	}
 
-	e := func(m *stack.Machine) error {
-		m.Push(s)
-		return nil
-	}
-
-	return e, nil
+	return stack.String(s), nil
 }
 
 func (p *Parser) operator(s string) (stack.Expr, error) {
 	switch s {
 	case "+":
-		return expr.BinaryOp("add", func(y, x float64) float64 { return y + x }), nil
+		return stack.BinaryOp("add", func(y, x float64) float64 { return y + x }), nil
 	case "*":
-		return expr.BinaryOp("mul", func(y, x float64) float64 { return y * x }), nil
+		return stack.BinaryOp("mul", func(y, x float64) float64 { return y * x }), nil
 	case "-":
-		return expr.BinaryOp("sub", func(y, x float64) float64 { return y - x }), nil
+		return stack.BinaryOp("sub", func(y, x float64) float64 { return y - x }), nil
 	case "/":
-		return expr.BinaryOp("div", func(y, x float64) float64 { return y / x }), nil
+		return stack.BinaryOp("div", func(y, x float64) float64 { return y / x }), nil
 	case "%":
-		return expr.BinaryOp("div", func(y, x float64) float64 { return math.Mod(y, x) }), nil
+		return stack.BinaryOp("div", func(y, x float64) float64 { return math.Mod(y, x) }), nil
 	case "**":
-		return expr.BinaryOp("sub", func(y, x float64) float64 { return math.Pow(y, x) }), nil
+		return stack.BinaryOp("sub", func(y, x float64) float64 { return math.Pow(y, x) }), nil
 	}
 
 	return nil, errUnknown
@@ -180,7 +170,7 @@ var dollarVar = regexp.MustCompile(`\$[0-9]+`)
 
 func (p *Parser) symbol(s string) (stack.Expr, error) {
 	if dollarVar.MatchString(s) {
-		return expr.GetSymbol(s), nil
+		return stack.GetSymbol(s), nil
 	}
 
 	// TODO - add support for named vars + sto/rcl
@@ -188,7 +178,7 @@ func (p *Parser) symbol(s string) (stack.Expr, error) {
 }
 
 func (p *Parser) identifier(s string) (stack.Expr, error) {
-	if e := expr.Predefined(s); e != nil {
+	if e := stack.Predefined(s); e != nil {
 		return e, nil
 	}
 

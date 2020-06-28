@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"oak/stack"
 	"flag"
 	"fmt"
 	"io"
@@ -12,13 +11,17 @@ import (
 
 	"oak/parse"
 	"oak/scan"
+	"oak/stack"
 
 	"github.com/chzyer/readline"
 )
 
 const pname = "oak"
 
-var machine = stack.New()
+var (
+	machine = stack.New()
+	debug   bool
+)
 
 func fromReadline() {
 	il := 1
@@ -40,7 +43,7 @@ func fromReadline() {
 		c := scan.Config{Base: 0, Readline: true}
 		b := bytes.NewBufferString(line)
 		s := scan.New(c, pname, b)
-		p := parse.New(machine, s, il, true)
+		p := parse.New(machine, s, il, true, debug)
 		e := p.Line()
 
 		if i, err := machine.Eval(il, e); err != nil {
@@ -58,7 +61,7 @@ func fromInput(r io.ReadCloser) {
 
 	c := scan.Config{}
 	s := scan.New(c, pname, bufio.NewReader(r))
-	p := parse.New(machine, s, 1, true)
+	p := parse.New(machine, s, 1, true, debug)
 	il := 1
 
 	for {
@@ -89,6 +92,7 @@ func main() {
 	flag.StringVar(&input, "e", "", "command text")
 	flag.IntVar(&fixed, "fix", 0, "fixed precision")
 	flag.IntVar(&scip, "sci", 0, "scientific precision")
+	flag.BoolVar(&debug, "debug", false, "show parsing")
 	flag.Parse()
 
 	if fixed > 0 {

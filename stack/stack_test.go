@@ -1,216 +1,258 @@
 package stack
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-func TestValueFreeFloat(t *testing.T) {
+func TestMachinePushPop(t *testing.T) {
 	m := &Machine{}
 
-	table := []struct{
-		v float64
-		s string
-	}{
-		{1, "1"},
-		{1.1, "1.1"},
+	m.Push(m.makeVal(3))
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+
+	var stack []float64
+
+	for x := m.Pop(); x != nil; x = m.Pop() {
+		if xf, ok := x.V.(float64); ok {
+			stack = append(stack, xf)
+		}
 	}
 
-	for _, tt := range table {
-		v := Value{T:floater, V:tt.v, m:m}
-		s := v.String()
+	want := []float64{1, 2, 3}
 
-		if s != tt.s {
-			t.Errorf("%v: wanted %s, got %s", tt.v, tt.s, s)
-		}
+	if !reflect.DeepEqual(stack, want) {
+		t.Errorf("wanted %v, got %v", want, stack)
 	}
 }
 
-func TestValueFixedFloat(t *testing.T) {
-	m := &Machine{disp: fixed}
-
-	table := []struct{
-		v float64
-		d int
-		s string
-	}{
-		{0.1, 1,"0.1"},
-		{1, 2,"1.00"},
-		{1.1, 3,"1.100"},
-	}
-
-	for _, tt := range table {
-		m.digits = tt.d
-
-		v := Value{T:floater, V:tt.v, m:m}
-		s := v.String()
-
-		if s != tt.s {
-			t.Errorf("%v: wanted %s, got %s", tt.v, tt.s, s)
-		}
-	}
-}
-
-func TestValueSciFloat(t *testing.T) {
-	m := &Machine{disp: scientific}
-
-	table := []struct{
-		v float64
-		d int
-		s string
-	}{
-		{0.1, 1,"1.0e-01"},
-		{1, 2,"1.00e+00"},
-		{1001, 3,"1.001e+03"},
-	}
-
-	for _, tt := range table {
-		m.digits = tt.d
-
-		v := Value{T:floater, V:tt.v, m:m}
-		s := v.String()
-
-		if s != tt.s {
-			t.Errorf("%v: wanted %s, got %s", tt.v, tt.s, s)
-		}
-	}
-}
-
-func TestValueEngFloat(t *testing.T) {
-	m := &Machine{disp: engineering}
-
-	table := []struct{
-		v float64
-		d int
-		s string
-	}{
-		{0.1, 1,"0.1e+00"},
-		{0.1, 2,"0.10e+00"},
-		{10, 1,"10e+00"},
-		{10, 2,"10.0e+00"},
-		{10, 3,"10.00e+00"},
-		{201, 2,"201e+00"},
-		{201, 3,"201.0e+00"},
-		{1001, 2,"1.00e+03"},
-		{1001, 3,"1.001e+03"},
-		{10201, 2,"10.2e+03"},
-		{10201, 3,"10.20e+03"},
-		{10201, 4,"10.201e+03"},
-		{3022201, 2,"3.02e+06"},
-		{3022201, 3,"3.022e+06"},
-		{30000201, 3,"30.00e+06"},
-
-		{-0.1, 2,"-0.10e+00"},
-		{-201, 2,"-201e+00"},
-		{-201, 3,"-201.0e+00"},
-	}
-
-	for _, tt := range table {
-		m.digits = tt.d
-
-		v := Value{T:floater, V:tt.v, m:m}
-		s := v.String()
-
-		if s != tt.s {
-			t.Errorf("%v: wanted %s, got %s", tt.v, tt.s, s)
-		}
-	}
-}
-
-func TestPlacesBinary(t *testing.T) {
-	table := []struct {
-		i, r int
-	}{
-		{7,  8},
-		{257,  16},
-		{65537,  24},
-	}
-
-	for _, tt := range table {
-		r := places(tt.i, 8, 8)
-
-		if r != tt.r {
-			t.Errorf("%d: wanted %d, got %d", tt.i, tt.r, r)
-		}
-	}
-}
-
-func TestPlacesOctal(t *testing.T) {
-	table := []struct {
-		i, r int
-	}{
-		{7,  3},
-		{257,  3},
-		{65537,  6},
-	}
-
-	for _, tt := range table {
-		r := places(tt.i, 3, 9)
-
-		if r != tt.r {
-			t.Errorf("%d: wanted %d, got %d", tt.i, tt.r, r)
-		}
-	}
-}
-
-func TestPlacesHexadecimal(t *testing.T) {
-	table := []struct {
-		i, r int
-	}{
-		{7,  4},
-		{257,  4},
-		{65537,  8},
-	}
-
-	for _, tt := range table {
-		r := places(tt.i, 4, 16)
-
-		if r != tt.r {
-			t.Errorf("%d: wanted %d, got %d", tt.i, tt.r, r)
-		}
-	}
-}
-
-func TestValueBinaryInt(t *testing.T) {
+func TestMachineTop(t *testing.T) {
 	m := &Machine{}
 
-	table := []struct{
-		v int
-		b radix
-		s string
-	}{
-		{1, base02,"0b00000001"},
-		{5, base02,"0b00000101"},
-		{255, base02,"0b11111111"},
-		{256, base02,"0b0000000100000000"},
-		{4096, base02,"0b0001000000000000"},
-		{4097, base02,"0b0001000000000001"},
-		{65535, base02,"0b1111111111111111"},
-		{65537, base02,"0b000000010000000000000001"},
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
 
-		{1, base08,"001"},
-		{7, base08,"007"},
-		{255, base08,"0377"},
-		{256, base08,"0400"},
-		{4096, base08,"010000"},
-		{4097, base08,"010001"},
-		{65535, base08,"0177777"},
-		{65537, base08,"0200001"},
+	var top float64
 
-
-		{1, base16,"0x0001"},
-		{7, base16,"0x0007"},
-		{255, base16,"0x00ff"},
-		{256, base16,"0x0100"},
-		{65535, base16,"0xffff"},
-		{65537, base16,"0x00010001"},
+	if x := m.Top(); x != nil {
+		if xf, ok := x.V.(float64); ok {
+			top = xf
+		}
 	}
 
-	for _, tt := range table {
-		m.base = tt.b
+	want := 1.0
 
-		v := Value{T:integer, V:tt.v, m:m}
-		s := v.String()
+	if !reflect.DeepEqual(top, want) {
+		t.Errorf("wanted %v, got %v", want, top)
+	}
+}
 
-		if s != tt.s {
-			t.Errorf("%v: wanted %s, got %s", tt.v, tt.s, s)
+func TestMachineEmpty(t *testing.T) {
+	m := &Machine{}
+
+	if x := m.Top(); x != nil {
+		t.Errorf("expected nil top-of-stack")
+	}
+
+	if x := m.Pop(); x != nil {
+		t.Errorf("expected nil top-of-stack")
+	}
+
+	if x := m.PopX(); x != nil {
+		t.Errorf("expected nil top-of-stack")
+	}
+
+	if x := m.Last(); x != nil {
+		t.Errorf("expected nil top-of-stack")
+	}
+}
+
+func TestMachinePopXLast(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+
+	var top, last float64
+
+	if x := m.PopX(); x != nil {
+		if xf, ok := x.V.(float64); ok {
+			top = xf
 		}
+	}
+
+	wantTop := 1.0
+
+	if !reflect.DeepEqual(top, wantTop) {
+		t.Errorf("wanted %v, got %v", wantTop, top)
+	}
+
+	if x := m.Last(); x != nil {
+		if xf, ok := x.V.(float64); ok {
+			last = xf
+		}
+	}
+
+	wantLast := 1.0
+
+	if !reflect.DeepEqual(last, wantLast) {
+		t.Errorf("wanted %v, got %v", wantLast, last)
+	}
+
+}
+
+func TestMachinePopXLastSingle(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(1))
+
+	var top, last float64
+
+	if x := m.PopX(); x != nil {
+		if xf, ok := x.V.(float64); ok {
+			top = xf
+		}
+	}
+
+	wantTop := 1.0
+
+	if !reflect.DeepEqual(top, wantTop) {
+		t.Errorf("wanted %v, got %v", wantTop, top)
+	}
+
+	if x := m.Last(); x != nil {
+		if xf, ok := x.V.(float64); ok {
+			last = xf
+		}
+	}
+
+	wantLast := 1.0
+
+	if !reflect.DeepEqual(last, wantLast) {
+		t.Errorf("wanted %v, got %v", wantLast, last)
+	}
+
+}
+
+func TestMachineDup(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+	m.Dup()
+
+	var stack []float64
+
+	for x := m.Pop(); x != nil; x = m.Pop() {
+		if xf, ok := x.V.(float64); ok {
+			stack = append(stack, xf)
+		}
+	}
+
+	want := []float64{1, 1, 2}
+
+	if !reflect.DeepEqual(stack, want) {
+		t.Errorf("wanted %v, got %v", want, stack)
+	}
+}
+
+func TestMachineDupEmpty(t *testing.T) {
+	m := &Machine{}
+
+	m.Dup()
+
+	if x := m.PopX(); x != nil {
+		t.Errorf("expected nil top-of-stack")
+	}
+}
+
+func TestMachineDup2(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+	m.Dup2()
+
+	var stack []float64
+
+	for x := m.Pop(); x != nil; x = m.Pop() {
+		if xf, ok := x.V.(float64); ok {
+			stack = append(stack, xf)
+		}
+	}
+
+	want := []float64{1, 2, 1, 2}
+
+	if !reflect.DeepEqual(stack, want) {
+		t.Errorf("wanted %v, got %v", want, stack)
+	}
+}
+
+func TestMachineRoll(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(3))
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+	m.Roll()
+
+	var stack []float64
+
+	for x := m.Pop(); x != nil; x = m.Pop() {
+		if xf, ok := x.V.(float64); ok {
+			stack = append(stack, xf)
+		}
+	}
+
+	want := []float64{2, 3, 1}
+
+	if !reflect.DeepEqual(stack, want) {
+		t.Errorf("wanted %v, got %v", want, stack)
+	}
+}
+
+func TestMachineRoll2(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+	m.Roll()
+
+	var stack []float64
+
+	for x := m.Pop(); x != nil; x = m.Pop() {
+		if xf, ok := x.V.(float64); ok {
+			stack = append(stack, xf)
+		}
+	}
+
+	want := []float64{2, 1}
+
+	if !reflect.DeepEqual(stack, want) {
+		t.Errorf("wanted %v, got %v", want, stack)
+	}
+}
+
+func TestMachineSwap(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(3))
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+	m.Swap()
+
+	var stack []float64
+
+	for x := m.Pop(); x != nil; x = m.Pop() {
+		if xf, ok := x.V.(float64); ok {
+			stack = append(stack, xf)
+		}
+	}
+
+	want := []float64{2, 1, 3}
+
+	if !reflect.DeepEqual(stack, want) {
+		t.Errorf("wanted %v, got %v", want, stack)
 	}
 }

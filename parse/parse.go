@@ -3,7 +3,6 @@ package parse
 import (
 	"errors"
 	"fmt"
-	"math"
 	"os"
 	"regexp"
 	"strconv"
@@ -150,17 +149,17 @@ func (p *Parser) str(s string) (stack.Expr, error) {
 func (p *Parser) operator(s string) (stack.Expr, error) {
 	switch s {
 	case "+":
-		return stack.BinaryOp("add", func(y, x float64) float64 { return y + x }), nil
+		return stack.Add, nil
 	case "*":
-		return stack.BinaryOp("mul", func(y, x float64) float64 { return y * x }), nil
+		return stack.Multiply, nil
 	case "-":
-		return stack.BinaryOp("sub", func(y, x float64) float64 { return y - x }), nil
+		return stack.Subtract, nil
 	case "/":
-		return stack.BinaryOp("div", func(y, x float64) float64 { return y / x }), nil
+		return stack.Divide, nil
 	case "%":
-		return stack.BinaryOp("div", func(y, x float64) float64 { return math.Mod(y, x) }), nil
+		return stack.Modulo, nil
 	case "**":
-		return stack.BinaryOp("sub", func(y, x float64) float64 { return math.Pow(y, x) }), nil
+		return stack.Power, nil
 	}
 
 	return nil, errUnknown

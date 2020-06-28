@@ -68,13 +68,28 @@ By default, the calculator operates in base-10 floating point mode, but may be c
 
 Changing the base to binary, octal, or hexadecimal has these effects:
 
-- input numbers are taken to be integers
+- input numbers are taken to be integers, with these options:
+    - a `0[bB]` prefix indicates binary
+    - a `0[xX]` prefix indicates hexadecimal
+    - numbers with a leading 0 will be taken as octal (e.g., 0177 is decimal 127)
 - the output of integers is formatted in the correct base; e.g. with a `0x` prefix for hexadecimal numbers
 
 If the base was changed by a conversion command ("bin", "oct", or "hex"):
 
 - the top of stack will be converted to an integer (truncated) when the base is changed to binary/octal/hex
 - other numbers (deeper in the stack) remain as floating point numbers unless disturbed, and will retain their full values if the mode is changed back
+
+For example
+
+    $ oak
+    > oct 127   `could have been "127 oct" also
+    1: 0177
+    > 234
+    2: 0352
+    > +
+    3: 0551
+    > dec
+    4: 361
 
 All math is integer math while the base is not decimal, and so any operation involving a floating point number may cause it to be truncated.
 
@@ -109,8 +124,6 @@ versus
 Binary numbers display in multiples of 8 bits, octal in multiples of 3 digits, and hexadecimal in multiples of 4. Thus 12 will show in 8 bits, but 257 will show in 16 bits in binary mode; both will show using 4 digits in hexadecimal mode, while 65536 will show using 8 hex digits.
 
 There will be no support for converting floating point numbers into their equivalent unsigned integer form and vice versa (i.e., for debugging IEEE formats).
-
-TODO: allow input using binary/octal/hexadecimal formats, e.g. with a `0b` or `0x` prefix. Note also that bitwise operators are not yet supported.
 
 ### Commands
 
@@ -244,6 +257,7 @@ By default, oak uses Go's default floating point representation.
 ## To do
 Here are a few of the possible enhancements:
 
+- read .oakrc at startup to set modes/enter definitions (no output)
 - add a few missing functions (e.g. acos, tanh)
 - bitwise operators, similar to the HP 16c
 - interest-rate calculations, similar to the HP 12c
@@ -255,8 +269,4 @@ Here are a few of the possible enhancements:
 - oh, and we need a circular slide rule mode of operation, too ;-)
 
 ## Bugs
-Here are a couple of issues relating to handling comments/whitespace/newlines:
-
-- two commas in a row cause the remainder of input to be lost
-- comments in files read with `-f` aren't quite right, either
-
+There are no open issues

@@ -5,7 +5,7 @@ lint:
 	golangci-lint run
 
 test:
-	go test ./... -coverprofile=c.out -covermode=count
+	go test -v ./... -coverprofile=c.out -covermode=count
 
 clean:
 	rm -f oak

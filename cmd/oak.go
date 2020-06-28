@@ -43,7 +43,7 @@ func fromReadline() {
 		c := scan.Config{Base: 0, Interactive: true}
 		b := bytes.NewBufferString(line)
 		s := scan.New(c, pname, b)
-		p := parse.New(machine, s, il, true, debug)
+		p := parse.New(machine, s, il, debug)
 		e := p.Line()
 
 		if i, err := machine.Eval(il, e); err != nil {
@@ -61,11 +61,12 @@ func fromInput(r io.ReadCloser) {
 
 	c := scan.Config{}
 	s := scan.New(c, pname, bufio.NewReader(r))
-	p := parse.New(machine, s, 1, true, debug)
+	p := parse.New(machine, s, 1, debug)
 	il := 1
 
 	for {
 		e := p.Line()
+
 		if len(e) == 0 {
 			break
 		}

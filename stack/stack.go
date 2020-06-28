@@ -53,6 +53,7 @@ type Machine struct {
 	disp    display
 	base    radix
 	mode    mode
+	debug   bool
 }
 
 // Symbol represents a variable
@@ -93,6 +94,10 @@ func (m *Machine) Eval(line int, exprs []Expr) (interface{}, error) {
 		if err := e(m); err != nil {
 			return nil, err
 		}
+
+		if m.debug {
+			showStack(m.stack)
+		}
 	}
 
 	s := fmt.Sprintf("$%d", line)
@@ -105,6 +110,19 @@ func (m *Machine) Eval(line int, exprs []Expr) (interface{}, error) {
 	m.vars[s] = &Symbol{s, t}
 
 	return t.String(), nil
+}
+
+func (m *Machine) Base() int {
+	switch m.base {
+	case base02:
+		return 2
+	case base08:
+		return 8
+	case base16:
+		return 16
+	}
+
+	return 10
 }
 
 // Lookup takes a variable name and returns the symbol
@@ -151,6 +169,14 @@ func (m *Machine) Builtin(s string) (Expr, error) {
 func Number(f float64) Expr {
 	return func(m *Machine) error {
 		m.Push(m.makeVal(f))
+		return nil
+	}
+}
+
+// Put a numerical value onto the stack.
+func Integer(n int) Expr {
+	return func(m *Machine) error {
+		m.Push(m.makeVal(float64(n)))
 		return nil
 	}
 }
@@ -203,4 +229,16 @@ func trimQuotes(s string) string {
 		}
 	}
 	return s
+}
+
+func showStack(s []*Value) {
+	l := len(s)
+
+	fmt.Print("[")
+
+	for i := l - 1; i >= 0; i-- {
+		fmt.Print(*s[i], ", ")
+	}
+
+	fmt.Println("]")
 }

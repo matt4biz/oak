@@ -18,40 +18,51 @@ type Parser struct {
 	tokens  []scan.Token
 	buff    [100]scan.Token
 	line    int
-	inter   bool
+	base    int
 	debug   bool
 }
 
-func New(m *stack.Machine, s *scan.Scanner, line int, inter, debug bool) *Parser {
+// New returns a new parser using a particular stack machine and scanner.
+// In debug mode it will show tokens for each line.
+func New(m *stack.Machine, s *scan.Scanner, line int, debug bool) *Parser {
 	p := Parser{
 		machine: m,
 		scanner: s,
 		line:    line,
-		inter:   inter,
+		base:    m.Base(),
 		debug:   debug,
 	}
 
 	return &p
 }
 
+// Line returns a list of expressions for the machine to evaluate; if
+// there's a comma or newline, it will emit a NOP as a placeholder, so
+// we only expect an empty list when we've run out of input to parse.
+// This requires the scanner to return tokens for newline or comma.
 func (p *Parser) Line() []stack.Expr {
-	output := func() {
-		if len(p.tokens) > 0 {
-			if p.debug {
-				fmt.Printf("%d: %s\n", p.line, p.tokens)
-			}
-			p.line++
-		}
-	}
+	p.base = p.machine.Base()
 
 	if !p.readTokensToNewline() {
 		return nil
 	}
 
-	output()
+	if len(p.tokens) > 0 {
+		if p.debug {
+			fmt.Printf("%d: %s\n", p.line, p.tokens)
+		}
+		p.line++
+	}
+
 	return p.evaluate()
 }
 
+// readTokensToNewline clears the token buffer and fills it
+// until a newline (comma) is found, or we reach EOF. For
+// EOF we get true if we should keep evaluating because there
+// are tokens left in the buffer, and false when not. Note
+// that newline/comma tokens are explicitly added to the
+// token buffer, not absorbed.
 func (p *Parser) readTokensToNewline() bool {
 	p.tokens = p.buff[:0]
 
@@ -62,7 +73,8 @@ func (p *Parser) readTokensToNewline() bool {
 		case scan.Error:
 			p.errorf("%s", tok)
 
-		case scan.Newline:
+		case scan.Newline, scan.Comma:
+			p.tokens = append(p.tokens, tok)
 			return true
 
 		case scan.EOF:
@@ -73,6 +85,9 @@ func (p *Parser) readTokensToNewline() bool {
 	}
 }
 
+// evaluate processes actual tokens to create the expression
+// list that will be executed. For newline/comma, we return
+// a NOP so that the list is not empty until we reach EOF.
 func (p *Parser) evaluate() []stack.Expr {
 	var (
 		result []stack.Expr
@@ -84,7 +99,7 @@ func (p *Parser) evaluate() []stack.Expr {
 		switch t.Type {
 		case scan.Number:
 			if e, err = p.number(t.Text); err != nil {
-				p.errorf("bad operator: %s: %w", t.Text, err)
+				p.errorf("%s: %s", err, t.Text)
 				return nil
 			}
 
@@ -105,6 +120,10 @@ func (p *Parser) evaluate() []stack.Expr {
 					p.errorf("unknown name: %s", t.Text)
 					return nil
 				}
+
+				// we need to allow binary input in the middle
+				// of an input line when there's a mode change
+				p.checkForBaseChange(t.Text)
 			}
 
 		case scan.String:
@@ -112,6 +131,9 @@ func (p *Parser) evaluate() []stack.Expr {
 				p.errorf("invalid string: %q", t.Text)
 				return nil
 			}
+
+		case scan.Comma, scan.Newline, scan.Comment:
+			e = stack.Nop
 		}
 
 		if e != nil {
@@ -128,14 +150,64 @@ func (p *Parser) errorf(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 }
 
-func (p *Parser) number(s string) (stack.Expr, error) {
-	f, err := strconv.ParseFloat(s, 64)
+func (p *Parser) number(s string) (result stack.Expr, err error) {
+	if p.base != 10 {
+		// if we're in integer mode, we want to parse integers, possibly
+		// with a leading 0 or 0x/0b prefix; floats will not work here
 
-	if err != nil {
+		var n uint64
+
+		if len(s) > 0 && s[0] == '0' {
+			if len(s) > 2 {
+				// if we don't have a prefix, we have a leading 0 for octal;
+				// however, we aren't going to accept (e.g.) "0x" by itself
+
+				if s[1] == 'x' || s[1] == 'X' {
+					n, err = strconv.ParseUint(s[2:], 16, 64)
+				} else if s[1] == 'b' || s[1] == 'B' {
+					n, err = strconv.ParseUint(s[2:], 2, 64)
+				} else {
+					n, err = strconv.ParseUint(s, 8, 64)
+				}
+			} else {
+				n, err = strconv.ParseUint(s, 10, 64)
+			}
+		} else {
+			n, err = strconv.ParseUint(s, 10, 64)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
+		return stack.Integer(int(n)), nil
+	}
+
+	if strings.HasPrefix(s, "0b") || strings.HasPrefix(s, "0B") ||
+		strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+		return nil, fmt.Errorf("binary format invalid")
+	}
+
+	var f float64
+
+	if f, err = strconv.ParseFloat(s, 64); err != nil {
 		return nil, err
 	}
 
 	return stack.Number(f), nil
+}
+
+func (p *Parser) checkForBaseChange(id string) {
+	switch id {
+	case "bin":
+		p.base = 2
+	case "dec":
+		p.base = 10
+	case "oct":
+		p.base = 8
+	case "hex":
+		p.base = 16
+	}
 }
 
 func (p *Parser) str(s string) (stack.Expr, error) {

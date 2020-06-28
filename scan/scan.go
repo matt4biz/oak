@@ -17,9 +17,11 @@ const (
 	EOF   Type = iota // zero value so closed channel delivers EOF
 	Error             // error occurred; value is text of error
 	Newline
+	Comment
 	// Interesting things
 	Char         // printable ASCII character
 	Colon        // ':'
+	Comma        // ','
 	Identifier   // alphanumeric identifier
 	LeftBracket  // '['
 	LeftBrace    // '{'
@@ -116,10 +118,14 @@ func (t Type) String() string {
 		return "Error"
 	case Newline:
 		return "Newline"
+	case Comment:
+		return "Comment"
 	case Char:
 		return "Char"
 	case Colon:
 		return "Colon"
+	case Comma:
+		return "Comma"
 	case Identifier:
 		return "Identifier"
 	case LeftBracket:
@@ -235,14 +241,12 @@ func (l *Scanner) backup() {
 
 // emit passes an item back to the client.
 func (l *Scanner) emit(t Type) {
-	if t == Newline {
-		if l.config.Interactive {
-			t = EOF
-		}
-		l.line++
+	s := l.input[l.start:l.pos]
+
+	if t == Newline || t == Comma || t == Comment {
+		s = ""
 	}
 
-	s := l.input[l.start:l.pos]
 	// config := l.context.Config()
 	//
 	// if config.Debug("tokens") {
@@ -252,6 +256,10 @@ func (l *Scanner) emit(t Type) {
 	l.tokens <- Token{t, l.line, s}
 	l.start = l.pos
 	l.width = 0
+
+	if t == Newline || t == Comma || t == Comment {
+		l.line++
+	}
 }
 
 // ignore skips over the pending input before this point.

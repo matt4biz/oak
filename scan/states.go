@@ -24,8 +24,8 @@ func lexComment(l *Scanner) stateFn {
 		l.pos = len(l.input)
 		l.start = l.pos - 1
 
-		// Emitting newline also advances l.line.
-		l.emit(Newline) // TODO: pass comments up?
+		// Emitting comment also advances l.line.
+		l.emit(Comment) // but the text is lost
 	}
 
 	return lexSpace
@@ -43,8 +43,12 @@ func lexAny(l *Scanner) stateFn {
 		}
 		return nil
 
-	case r == '\n', r == ',': // TODO: \r
+	case r == '\n': // TODO: \r
 		l.emit(Newline)
+		return lexAny
+
+	case r == ',':
+		l.emit(Comma)
 		return lexAny
 
 	case r == ':':

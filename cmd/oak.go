@@ -40,7 +40,7 @@ func fromReadline() {
 			break
 		}
 
-		c := scan.Config{Base: 0, Readline: true}
+		c := scan.Config{Base: 0, Interactive: true}
 		b := bytes.NewBufferString(line)
 		s := scan.New(c, pname, b)
 		p := parse.New(machine, s, il, true, debug)

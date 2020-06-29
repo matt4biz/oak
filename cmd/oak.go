@@ -21,6 +21,7 @@ const pname = "oak"
 var (
 	machine = stack.New()
 	debug   bool
+	version string // do not modify or remove
 )
 
 func fromReadline() {
@@ -89,6 +90,7 @@ func main() {
 		scip    int
 		engr    int
 		radians bool
+		show    bool
 	)
 
 	flag.StringVar(&fn, "f", "", "command file")
@@ -98,7 +100,13 @@ func main() {
 	flag.IntVar(&engr, "eng", 0, "engineering mode")
 	flag.BoolVar(&radians, "rad", false, "use radians mode")
 	flag.BoolVar(&debug, "debug", false, "show parsing")
+	flag.BoolVar(&show, "version", false, "show version")
 	flag.Parse()
+
+	if show {
+		fmt.Fprintln(os.Stderr, "version", version)
+		return
+	}
 
 	if fixed > 0 {
 		machine.SetFixed(fixed)

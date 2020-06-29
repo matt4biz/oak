@@ -1,5 +1,7 @@
+version=$(shell git describe --tags --long --dirty 2>/dev/null)
+
 oak:
-	go install ./cmd/oak.go
+	go install -ldflags "-X main.version=$(version)" ./cmd/oak.go
 
 lint:
 	golangci-lint run

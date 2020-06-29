@@ -3,7 +3,7 @@ package parse
 import (
 	"errors"
 	"fmt"
-	"os"
+	"io"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,6 +17,7 @@ type Parser struct {
 	scanner *scan.Scanner
 	tokens  []scan.Token
 	buff    [100]scan.Token
+	w       io.Writer
 	line    int
 	base    int
 	debug   bool
@@ -24,10 +25,11 @@ type Parser struct {
 
 // New returns a new parser using a particular stack machine and scanner.
 // In debug mode it will show tokens for each line.
-func New(m *stack.Machine, s *scan.Scanner, line int, debug bool) *Parser {
+func New(m *stack.Machine, s *scan.Scanner, w io.Writer, line int, debug bool) *Parser {
 	p := Parser{
 		machine: m,
 		scanner: s,
+		w:       w,
 		line:    line,
 		base:    m.Base(),
 		debug:   debug,
@@ -40,11 +42,11 @@ func New(m *stack.Machine, s *scan.Scanner, line int, debug bool) *Parser {
 // there's a comma or newline, it will emit a NOP as a placeholder, so
 // we only expect an empty list when we've run out of input to parse.
 // This requires the scanner to return tokens for newline or comma.
-func (p *Parser) Line() []stack.Expr {
+func (p *Parser) Line() ([]stack.Expr, error) {
 	p.base = p.machine.Base()
 
 	if !p.readTokensToNewline() {
-		return nil
+		return nil, nil
 	}
 
 	if len(p.tokens) > 0 {
@@ -88,7 +90,7 @@ func (p *Parser) readTokensToNewline() bool {
 // evaluate processes actual tokens to create the expression
 // list that will be executed. For newline/comma, we return
 // a NOP so that the list is not empty until we reach EOF.
-func (p *Parser) evaluate() []stack.Expr {
+func (p *Parser) evaluate() ([]stack.Expr, error) {
 	var (
 		result []stack.Expr
 		e      stack.Expr
@@ -100,25 +102,25 @@ func (p *Parser) evaluate() []stack.Expr {
 		case scan.Number:
 			if e, err = p.number(t.Text); err != nil {
 				p.errorf("%s: %s", err, t.Text)
-				return nil
+				return nil, err
 			}
 
 		case scan.Operator:
 			if e, err = p.operator(t.Text); err != nil {
 				p.errorf("bad operator: %s", t.Text)
-				return nil
+				return nil, err
 			}
 
 		case scan.Identifier:
 			if strings.HasPrefix(t.Text, "$") {
 				if e, err = p.symbol(t.Text); err != nil {
 					p.errorf("bad symbol: %s", t.Text)
-					return nil
+					return nil, err
 				}
 			} else {
 				if e, err = p.identifier(t.Text); err != nil {
 					p.errorf("unknown name: %s", t.Text)
-					return nil
+					return nil, err
 				}
 
 				// we need to allow binary input in the middle
@@ -129,7 +131,7 @@ func (p *Parser) evaluate() []stack.Expr {
 		case scan.String:
 			if e, err = p.str(t.Text); err != nil {
 				p.errorf("invalid string: %q", t.Text)
-				return nil
+				return nil, err
 			}
 
 		case scan.Comma, scan.Newline, scan.Comment:
@@ -141,13 +143,13 @@ func (p *Parser) evaluate() []stack.Expr {
 		}
 	}
 
-	return result
+	return result, nil
 }
 
 func (p *Parser) errorf(format string, args ...interface{}) {
 	p.tokens = p.buff[:0]
 
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	fmt.Fprintf(p.w, format+"\n", args...)
 }
 
 func (p *Parser) number(s string) (result stack.Expr, err error) {

@@ -1,7 +1,10 @@
 version=$(shell git describe --tags --long --dirty 2>/dev/null)
 
+## NOTE: we can't use go install because it
+## doesn't have the -o option to name the file
+
 oak:
-	go install -ldflags "-X main.version=$(version)" ./cmd/oak.go
+	go build -ldflags "-X main.version=$(version)" -o $@ ./cmd && mv $@ $(GOPATH)/bin
 
 lint:
 	golangci-lint run

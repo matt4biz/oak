@@ -68,6 +68,16 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
+	m.builtin["clrall"] = func(m *Machine) error {
+		m.stack = nil
+		return nil
+	}
+
+	m.builtin["show"] = func(m *Machine) error {
+		m.Show()
+		return nil
+	}
+
 	// STACK OPERATIONS
 
 	m.builtin["drop"] = func(m *Machine) error {
@@ -90,7 +100,7 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["show"] = func(m *Machine) error {
+	m.builtin["top"] = func(m *Machine) error {
 		m.Dup()
 		m.Pop()
 		return nil

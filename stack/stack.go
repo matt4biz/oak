@@ -125,6 +125,29 @@ func (m *Machine) Base() int {
 	return 10
 }
 
+func (m *Machine) Mode() string {
+	if m.mode == degrees {
+		return "deg"
+	}
+	return "rad"
+}
+
+func (m *Machine) Display() string {
+	switch m.disp {
+	case fixed:
+		return fmt.Sprintf("fix/%d", m.digits)
+	case scientific:
+		return fmt.Sprintf("sci/%d", m.digits)
+	case engineering:
+		return fmt.Sprintf("eng/%d", m.digits)
+	}
+
+	return "free"
+}
+func (m *Machine) Show() {
+	fmt.Println("base:", m.Base(), "mode:", m.Mode(), "display:", m.Display())
+}
+
 // Lookup takes a variable name and returns the symbol
 // which includes its value.
 func (m *Machine) Lookup(s string) *Symbol {
@@ -197,6 +220,10 @@ func GetSymbol(s string) Expr {
 
 		if v == nil {
 			return fmt.Errorf("can't find %s", s)
+		}
+
+		if v.V == nil {
+			return fmt.Errorf("%s undefined", s)
 		}
 
 		// TODO - if it's a dollarVar push the value, but if

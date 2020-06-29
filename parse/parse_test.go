@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"oak/scan"
 	"oak/stack"
+	"os"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func (st subTest) run(t *testing.T) {
 	s := scan.New(c, st.name, b)
 
 	m := stack.New()
-	p := New(m, s, 0, true)
+	p := New(m, s, os.Stderr, 0, true)
 
 	// we can't actually compare the parser's output directly
 	// because it's a list of closures, which can't be tested
@@ -27,7 +28,9 @@ func (st subTest) run(t *testing.T) {
 	// any safety); so instead we actually run the machine and
 	// look at the output line-by-line
 
-	for i, got := 0, p.Line(); len(got) > 0 && got[0] != nil; i, got = i+1, p.Line() {
+	var i int
+
+	for got, _ := p.Line(); len(got) > 0 && got[0] != nil; got, _ = p.Line() {
 		top, err := m.Eval(0, got)
 
 		if err != nil {
@@ -43,6 +46,8 @@ func (st subTest) run(t *testing.T) {
 		} else {
 			t.Errorf("line %q, invalid result %#v", st.input, top)
 		}
+
+		i++
 	}
 }
 

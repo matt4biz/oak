@@ -3,17 +3,18 @@
 
 oak exists because
 
-- `dc` is too cryptic, and doesn't use readline
+- `dc` is too cryptic and doesn't use readline
 - `bc` and similar programs use infix notation, not RPN
 - `apl` is all that, and requires a special keyboard too
 
-oak borrows a little from all these, and Forth as well.
+oak borrows a little from all these and Forth as well.
 
 ## Installation
 TBD
 
 ## Usage
-oak simulates a classic stack-based RPN calculator [RPN -- reverse Polish notation -- is also known as postfix notation]. Numbers are pushed onto a stack, and operators take the top item (or top two items) and leave a result on top of the stack.
+oak simulates a classic stack-based RPN calculator [RPN -- reverse Polish notation -- is also known as postfix notation]. 
+Numbers are pushed onto a stack, and operators take the top item (or top two items) and leave a result on top of the stack.
 
 For example
 
@@ -29,7 +30,8 @@ oak uses readline in interactive mode, allowing prior input lines to be recalled
 
 Variables in the form `$n` allow re-use of prior results (`$4` recalls the fourth result in the session). 
 
-A special variable `$0` acts as the "last x" operator, recalling the top-of-stack value from the last operation. For example
+A special variable `$0` acts as the "last x" operator, recalling the top-of-stack value from the last operation. 
+For example
 
 	> 4 sqrt
 	1: 2
@@ -44,9 +46,11 @@ Note that the result of the previous calculation remains on top of the stack, e.
 	2: 4
 
 ### The stack
-It is common to label the four topmost stack items using the letters x, y, z, and w (where x resides on top of the stack). This helps explain how operators are taken from the stack and results pushed back. 
+It is common to label the four topmost stack items using the letters x, y, z, and w (where x resides on top of the stack). 
+This helps explain how operators are taken from the stack and results pushed back. 
 
-Note that in the examples below, the use of these four named slots does not indicate the stack is limited to four items; it is actually unlimited.
+Note that in the examples below, the use of these four named slots does not indicate the stack is limited to four items; 
+it is actually unlimited.
 
 ### Numbers
 All numbers are currently evaluated as `float64` values in base 10. oak allows input in normal or scientific formats, e.g.
@@ -77,7 +81,8 @@ Changing the base to binary, octal, or hexadecimal has these effects:
 If the base was changed by a conversion command ("bin", "oct", or "hex"):
 
 - the top of stack will be converted to an integer (truncated) when the base is changed to binary/octal/hex
-- other numbers (deeper in the stack) remain as floating point numbers unless disturbed, and will retain their full values if the mode is changed back
+- other numbers (deeper in the stack) remain as floating point numbers unless disturbed, and will retain their full values
+  if the mode is changed back
 
 For example
 
@@ -91,7 +96,8 @@ For example
     > dec
     4: 361
 
-All math is integer math while the base is not decimal, and so any operation involving a floating point number may cause it to be truncated.
+All math is integer math while the base is not decimal, and so any operation involving a floating point number may cause 
+it to be truncated.
 
 Truncated numbers are not restored when switching back to decimal.
 
@@ -121,9 +127,12 @@ versus
 	> dec
 	3: 10
 
-Binary numbers display in multiples of 8 bits, octal in multiples of 3 digits, and hexadecimal in multiples of 4. Thus 12 will show in 8 bits, but 257 will show in 16 bits in binary mode; both will show using 4 digits in hexadecimal mode, while 65536 will show using 8 hex digits.
+Binary numbers display in multiples of 8 bits, octal in multiples of 3 digits, and hexadecimal in multiples of 4. Thus 
+12 will show in 8 bits, but 257 will show in 16 bits in binary mode; both will show using 4 digits in hexadecimal mode, 
+while 65536 will show using 8 hex digits.
 
-There will be no support for converting floating point numbers into their equivalent unsigned integer form and vice versa (i.e., for debugging IEEE formats).
+There will be no support for converting floating point numbers into their equivalent unsigned integer form and vice 
+versa (i.e., for debugging IEEE formats).
 
 ### Commands
 
@@ -171,6 +180,7 @@ and these binary functions
 as well as these operations on the stack / machine
 
 	clr    reset top of stack to 0
+	clrall reset the entire stack to empty
 	depth  push the existing stack depth onto it
 	       {w,z,y,x} -> {z,y,x,#}
 	drop   pop the top of stack
@@ -185,9 +195,11 @@ as well as these operations on the stack / machine
 	roll   roll the top of stack to the bottom
 	       {w,z,y,x} -> {x,w,z,y}
 	sci    pop the top of stack and set scientific format
-	show   causes the top of stack to be the result
+	show   display current modes; leaves stack unchanged
 	swap   swap the top two items
 	       {w,z,y,x} -> {w,z,x,y}
+	top    causes the top of stack to be the result
+	       (a blank line does the same thing)
 
 and these mode/conversion operations
 
@@ -197,8 +209,8 @@ and these mode/conversion operations
 	       {"deg","rad"} (default degrees)
 	
 	bin    convert to integer mode, base 2
-	oct    convert to integer mode, base 2
-	hex    convert to integer mode, base 2
+	oct    convert to integer mode, base 8
+	hex    convert to integer mode, base 16
 	dec    convert to normal (floating point) mode, base 10
 
 and these constants
@@ -207,7 +219,8 @@ and these constants
 	pi     ratio of diameter to circumference, 3.14159
 	phi    the "golden" ratio, 1.61803
 
-There is also a single punctuation mark, where the comma (`,`) is used to separate lines of input (e.g., when using the `-e` option, below).
+There is also a single punctuation mark, where the comma (`,`) is used to separate lines of input (e.g., when using the
+ `-e` option, below).
 
 The backtick (`` ` ``) is used to start a comment that extends to the end of the line.
 
@@ -225,7 +238,12 @@ TODO: allow the creation of user-defined words (a la Forth), for example
 
 	: name op op ... ;
 
-where the name may then be used as a function operating against the stack. Note that there is no declaration of parameter numbers or types.
+where the name may then be used as a function operating against the stack. 
+Note that there is no declaration of parameter numbers or types.
+
+Also, it will not be possible to allow result vars (`$1`, etc.) to be
+used in words; we'll need to store the elements as tokens to allow
+the state to be written out / loaded back in.
 
 ### Functions on strings
 TODO
@@ -248,19 +266,22 @@ oak has only a few options
 
 For example,
 
-	$oak -e '1 2 +, 3+'
+	$ oak -e '1 2 +, 3+'
 	1: 3
 	2: 6
-	$
+	$ oak -e '127 bin, oct, hex'
+	1: 0b01111111
+    2: 0177
+    3: 0x007f
 
 If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Use ctrl-D to exit.
 
-By default, oak uses Go's default floating point representation.
+oak uses Go's default floating point representation if no display mode is set.
 
 ## To do
 Here are a few of the possible enhancements:
 
-- read .oakrc at startup to set modes/enter definitions (no output)
+- allow the stack machine's state to be dumped & restored
 - add a few missing functions (e.g. acos, tanh)
 - bitwise operators, similar to the HP 16c
 - interest-rate calculations, similar to the HP 12c

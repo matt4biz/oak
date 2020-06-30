@@ -1,7 +1,9 @@
 package stack
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type (
@@ -54,12 +56,13 @@ type Machine struct {
 	base    radix
 	mode    mode
 	debug   bool
+	inter   bool
 }
 
 // Symbol represents a variable
 type Symbol struct {
-	S string
-	V *Value
+	S string `json:"symbol"`
+	V *Value `json:"value"`
 }
 
 // Word represents a stack-based function (macro).
@@ -82,6 +85,14 @@ func New() *Machine {
 
 	m.SetBuiltins()
 	return &m
+}
+
+func (m *Machine) SetInteractive() {
+	m.inter = true
+}
+
+func (m *Machine) SetDebugging() {
+	m.debug = true
 }
 
 // Eval takes a list of expressions (from the parser)
@@ -232,6 +243,41 @@ func GetSymbol(s string) Expr {
 		m.Push(*v.V)
 		return nil
 	}
+}
+
+func (m *Machine) MarshalJSON() ([]byte, error) {
+	var sb strings.Builder
+
+	sb.WriteString("{")
+	st, err := json.Marshal(m.stack)
+
+	if err != nil {
+		return nil, err
+	}
+
+	sb.WriteString(`"stack": `)
+	sb.Write(st)
+
+	vv, err := json.Marshal(m.vars)
+
+	if err != nil {
+		return nil, err
+	}
+
+	sb.WriteString(`, "vars": `)
+	sb.Write(vv)
+
+	lt, err := json.Marshal(m.x)
+
+	if err != nil {
+		return nil, err
+	}
+
+	sb.WriteString(`, "last": `)
+	sb.Write(lt)
+	sb.WriteString("}")
+
+	return []byte(sb.String()), nil
 }
 
 func (m *Machine) makeVal(s float64) Value {

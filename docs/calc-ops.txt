@@ -88,6 +88,14 @@ binary ops - pop two, push one
     <<   x = y << x
 	>>   x = y >> x
 
+bitwise ops
+
+	asr like >> but keep the sign bit (& 0x1000000000000000 >> then |)
+	rot (mask off low bit, move it to high bit, shift others down)
+	rotl (mask off high bit, shift others left, put it in low bit)
+	mask - makes masks to use with and (?)
+	bitc - count set bits
+
 comparison -- all return BOOL
 
     <      x = bool(x < y)

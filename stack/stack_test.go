@@ -140,7 +140,7 @@ func TestMachineDup(t *testing.T) {
 
 	m.Push(m.makeVal(2))
 	m.Push(m.makeVal(1))
-	m.Dup()
+	_ = m.Dup()
 
 	var stack []float64
 
@@ -160,7 +160,7 @@ func TestMachineDup(t *testing.T) {
 func TestMachineDupEmpty(t *testing.T) {
 	m := &Machine{}
 
-	m.Dup()
+	_ = m.Dup()
 
 	if x := m.PopX(); x != nil {
 		t.Errorf("expected nil top-of-stack")
@@ -172,7 +172,7 @@ func TestMachineDup2(t *testing.T) {
 
 	m.Push(m.makeVal(2))
 	m.Push(m.makeVal(1))
-	m.Dup2()
+	_ = m.Dup2()
 
 	var stack []float64
 
@@ -240,7 +240,7 @@ func TestMachineSwap(t *testing.T) {
 	m.Push(m.makeVal(3))
 	m.Push(m.makeVal(2))
 	m.Push(m.makeVal(1))
-	m.Swap()
+	_ = m.Swap()
 
 	var stack []float64
 

@@ -17,6 +17,8 @@ import (
 // from Readline runs the REPL and
 // parses one line at a time
 func fromReadline() {
+	machine.SetInteractive()
+
 	il := 1
 	rl, err := readline.New("> ")
 

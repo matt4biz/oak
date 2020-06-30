@@ -73,7 +73,7 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["show"] = func(m *Machine) error {
+	m.builtin["status"] = func(m *Machine) error {
 		m.Show()
 		return nil
 	}
@@ -86,13 +86,15 @@ func (m *Machine) SetBuiltins() {
 	}
 
 	m.builtin["dup"] = func(m *Machine) error {
-		m.Dup()
-		return nil
+		return m.Dup()
 	}
 
 	m.builtin["dup2"] = func(m *Machine) error {
-		m.Dup2()
-		return nil
+		return m.Dup2()
+	}
+
+	m.builtin["over"] = func(m *Machine) error {
+		return m.Over()
 	}
 
 	m.builtin["roll"] = func(m *Machine) error {
@@ -101,14 +103,12 @@ func (m *Machine) SetBuiltins() {
 	}
 
 	m.builtin["top"] = func(m *Machine) error {
-		m.Dup()
-		m.Pop()
+		m.Top()
 		return nil
 	}
 
 	m.builtin["swap"] = func(m *Machine) error {
-		m.Swap()
-		return nil
+		return m.Swap()
 	}
 
 	m.builtin["depth"] = func(m *Machine) error {
@@ -320,6 +320,21 @@ func (m *Machine) SetBuiltins() {
 			m.SetEngineering(x.V.(int))
 		}
 
+		return nil
+	}
+
+	m.builtin["save"] = func(m *Machine) error {
+		fn := m.Pop().V.(string)
+
+		return m.SaveToFile(fn)
+	}
+
+	m.builtin["bye"] = func(m *Machine) error {
+		if m.inter {
+			fmt.Println("Goodbye")
+		}
+
+		m.Quit()
 		return nil
 	}
 }

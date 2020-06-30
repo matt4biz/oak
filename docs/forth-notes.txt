@@ -1,0 +1,88 @@
+[DONE] bye = ^D to exit REPL
+
+-i (or -l) to load an "image"
+
+-f - to take std in, maybe -f file[,file] where the last could be -
+because we want to be able to pipe in stdin
+
+"save" in JSON format: stack, variables (symbols), words
+we need a dump feature before we can start on words/logic;
+"load" overwrites the current image
+
+before that we want to know about HP 16c bitwise operators
+(see the manual)
+
+we may also want some in-program words (like show) that
+can display the stack, variables, words, e.g., "dump"
+
+we may want to change flags to use GNU format -v [--version]
+
+we would like REPL history to be saved (.oakhist) like bash
+and have that availble when you start a new session
+
+new stack op: "over" duplicates the second stack item to the top
+of stack {w,z,y,x} -> {z,y,x,y} (this is simpler than dup2 + pop)
+
+IF we're not going to support single-char data (runes) as 'x'
+THEN we could use ' to mark the commend, allow `` for raw strings
+(we could do characters the FORTH way, <number> "c")
+
+"see" + word name -> output the def'n without executing it
+
+IF we're not using () for anything else
+THEN we could allow them to make in-line comments like Forth
+
+** we will have to define logic & iteratation, but not in the
+** manner of Forth
+**
+** we may want to be able to mark words as symbols so they're
+** not executed until the if has been evaluated, or we're
+** going to have to do much fancier parsing/compilation to
+** know that some words are only executed based on the if ...
+
+FORTH: "if takes a flag from the stack. If the flag is non-zero 
+(true), the following code is performed, otherwise execution 
+continues after the endif (or else)"
+
+i.e., FORTH <test> <if> true-part <else> false-part <then>
+
+we want something like
+
+	  false-part true-part <test> <if>
+
+where the false/true parts don't execute first
+if we do it the forth way, we'll need to have the if-test
+interact with the machine to skip an expr (jump over)
+
+i.e., <test> <if> true-part false-part next...
+
+where test leaves T/F on the stack, if pops & checks
+and sets JMP=true if the value was T, and then the
+machine checks JMP before executing the next expr
+
+FORTH allows if-then logic only inside word definitions,
+so that makes things easier -- we could collect the
+word def'n and then re-write it as needed, with special
+markers for embedded true-/false parts
+
+ditto iteration: we would need to keep words from 
+evaluating before we've checked the iteration marker
+
+** NOTE: in a word def'n : word expr expr... ;
+** we won't be executing the exprs, just storing them
+** for later execution, so we actually are just fine!
+**
+** when we see : we put the parser into compile mode
+** to make a word, such that the exprs are stored in
+** the word's internal definition structure 
+** (a la FORTH execution tokens)
+**
+** we just have to know how to execute them correctly
+** when the word is used; so we can put internal-only
+** machine functions into the word def'n all we want
+
+we need to see whether we should just put markers (labels)
+in the code and use HP 1Xc programming logic to run code
+
+when we get to strings, we'll have "type" to make output
+we will also need a way to collect user input ...

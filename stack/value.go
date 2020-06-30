@@ -8,9 +8,9 @@ import (
 )
 
 type Value struct {
-	T tag
-	M mode
-	V interface{}
+	T tag         `json:"tag"`
+	M mode        `json:"mode"`
+	V interface{} `json:"value"`
 	m *Machine
 }
 

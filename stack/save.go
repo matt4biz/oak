@@ -42,14 +42,53 @@ func (m *Machine) SaveToFile(fn string) error {
 	b, err := json.Marshal(mi)
 
 	if err != nil {
-		return fmt.Errorf("dump %w", err)
+		return fmt.Errorf("save: %w", err)
 	}
 
 	err = ioutil.WriteFile(fn, b, 0644)
 
 	if err != nil {
-		return fmt.Errorf("save %w", err)
+		return fmt.Errorf("save: %w", err)
 	}
+
+	return nil
+}
+
+func (m *Machine) LoadFromFile(fn string) error {
+	b, err := ioutil.ReadFile(fn)
+
+	if err != nil {
+		return fmt.Errorf("load: %w", err)
+	}
+
+	var mi MachineImage
+
+	err = json.Unmarshal(b, &mi)
+
+	if err != nil {
+		return fmt.Errorf("load: %w", err)
+	}
+
+	for _, v := range mi.Stack {
+		v.m = m
+		m.Push(*v)
+	}
+
+	x := mi.LastX
+	x.m = m
+	m.x = x
+
+	for k, s := range mi.Vars {
+		s.V.m = m
+		m.vars[k] = s
+	}
+
+	// TODO - read & compile words
+
+	m.base = mi.Status.Base
+	m.digits = mi.Status.Digits
+	m.disp = mi.Status.Display
+	m.mode = mi.Status.Mode
 
 	return nil
 }

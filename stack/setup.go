@@ -339,6 +339,41 @@ func (m *Machine) SetBuiltins() {
 		return m.SaveToFile(fn)
 	}
 
+	m.builtin["load"] = func(m *Machine) error {
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
+		x := m.Pop()
+
+		if x.T != stringer {
+			return fmt.Errorf("save: invalid operand x=%#v", x)
+		}
+
+		fn := x.V.(string)
+
+		return m.LoadFromFile(fn)
+	}
+
+	m.builtin["dump"] = func(m *Machine) error {
+		fmt.Println("DUMP ========")
+		fmt.Printf("LAST: %s\n", *m.x)
+
+		for i, l := 0, len(m.stack); i < len(m.stack); i++ {
+			l--
+			fmt.Printf("ST %d: %s\n", l, *m.stack[i])
+		}
+
+		fmt.Println()
+
+		for k, v := range m.vars {
+			fmt.Printf("V %s: %s\n", k, *v)
+		}
+
+		fmt.Println("======== DUMP")
+		return nil
+	}
+
 	m.builtin["bye"] = func(m *Machine) error {
 		if m.inter {
 			fmt.Println("Goodbye")

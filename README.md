@@ -65,6 +65,32 @@ All numbers are currently evaluated as `float64` values in base 10. oak allows i
 
 A number is always pushed onto the top of the stack.
 
+### Display
+
+There are three explicit display modes:
+
+- fixed point
+- scientific notation
+- engineering notation (scientific, but exponents are always multple of 3)
+
+These can be set from the command line of by commands (see below).
+oak uses Go's default floating point representation if no display mode is set.
+
+For example:
+
+	> 3 recp
+	1: 0.3333333333333333
+	> 3 fix
+	2: 0.333
+	> 3 sci
+	3: 3.333e-01
+	> 3 eng
+	4: 0.333e+00
+	> 10 *
+	5: 3.333e+00
+	> 100 *
+	6: 0.333e+03
+
 ### Modes
 By default, trigonometry functions evaluate their arguments in degrees; the mode may be changed to radians (see "mode" below).
 
@@ -134,9 +160,9 @@ while 65536 will show using 8 hex digits.
 There will be no support for converting floating point numbers into their equivalent unsigned integer form and vice 
 versa (i.e., for debugging IEEE formats).
 
-### Commands
+### Operations
 
-oak offers the following operators:
+oak offers the following binary operators:
 
 	+      {y,x} -> x = y+x
 	-      {y,x} -> x = y-x
@@ -149,11 +175,10 @@ along with the following unary functions, which replace the top of stack with a 
 
 	abs    absolute value
 	chs    change sign
-	cbrt   cube root
+	cbrt   cube root (x ** 1/3)
 	ceil   ceiling
 	cos    cosine
 	cube   cube (x ** 3)
-	deg    convert radians to degrees (and change the mode)
 	exp    e ** x
 	fact   factorial [using gamma(x+1)]
 	floor  floor
@@ -161,10 +186,9 @@ along with the following unary functions, which replace the top of stack with a 
 	ln     natural log
 	log    log in base 10
 	pow    10 ** x
-	rad    convert degrees to radians (and change the mode)
 	recp   reciprocal [1/x]
 	sin    sine
-	sqr    x ** 2
+	sqr    square (x ** 2)
 	sqrt   square root (x ** 1/2)
 	tan    tangent
 	trunc  truncate
@@ -183,6 +207,8 @@ as well as these operations on the stack / machine
 	clrall reset the entire stack to empty
 	depth  push the existing stack depth onto it
 	       {w,z,y,x} -> {z,y,x,#}
+	dump   display the stack & variables, leave stack unchanged
+	       (very primitive debugging tool ;-)
 	drop   pop the top of stack
 	       {w,z,y,x} -> {w,z,y}
 	dup    duplicate the top of stack
@@ -192,12 +218,14 @@ as well as these operations on the stack / machine
 	eng    pop the top of stack and set engineering notation
 	       (scientific notation, but exponents are multiples of 3)
 	fix    pop the top of stack and set fixed precision
+	load   pop a string off the stack and read the machine's
+	       state from that file; overwrites the current state
 	over   duplicate the second-from-top item onto the stack
 	       {w,z,y,x} -> {z,y,x,y}
 	roll   roll the top of stack to the bottom
 	       {w,z,y,x} -> {x,w,z,y}
 	save   pop a string off the stack and save the machine's
-	       state into that file (for a future "load")
+	       state into that file
 	sci    pop the top of stack and set scientific format
 	status display current modes; leaves stack unchanged
 	swap   swap the top two items
@@ -207,14 +235,18 @@ as well as these operations on the stack / machine
 
 and these mode/conversion operations
 
-	base   pop the top of stack and set base {2,8,10,16}
-	       (default 10)
 	mode   pop the top of stack and set the trigonometry mode
 	       {"deg","rad"} (default degrees)
-	
-	bin    convert to integer mode, base 2
-	oct    convert to integer mode, base 8
-	hex    convert to integer mode, base 16
+
+	deg    convert radians to degrees (and change the mode)
+	rad    convert degrees to radians (and change the mode)
+
+	base   pop the top of stack and set base {2,8,10,16}
+	       (default 10)
+
+	bin    convert to integer, set base 2
+	oct    convert to integer, set base 8
+	hex    convert to integer, set base 16
 	dec    convert to normal (floating point) mode, base 10
 
 and these constants
@@ -226,7 +258,7 @@ and these constants
 There is also a single punctuation mark, where the comma (`,`) is used to separate lines of input (e.g., when using the
  `-e` option, below).
 
-The backtick (`` ` ``) is used to start a comment that extends to the end of the line.
+The backtick (`` ` ``) is used to start a comment that extends to the end of the line. (TBD: maybe use the single quote `'`, and allow backticks to mark a raw string.)
 
 ### Variables
 At present, only "result" variables are supported, i.e. variables in the form `$1`.
@@ -278,15 +310,11 @@ For example,
     2: 0177
     3: 0x007f
 
-If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. 
-Exit with "bye" or ctrl-D to exit; the latter will not save any state.
-
-oak uses Go's default floating point representation if no display mode is set.
+If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Exit with "bye" or type ctrl-D; the latter will not save any state.
 
 ## To do
 Here are a few of the possible enhancements:
 
-- allow the stack machine's state to be dumped & restored
 - add a few missing functions (e.g. acos, tanh)
 - bitwise operators, similar to the HP 16c
 - interest-rate calculations, similar to the HP 12c

@@ -67,6 +67,7 @@ type Symbol struct {
 type Word struct {
 	N string
 	P []Expr
+	// TODO - how do we keep def'n for recompile?
 }
 
 // Expr represents an expression (operation) that runs

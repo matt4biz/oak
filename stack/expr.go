@@ -7,6 +7,10 @@ import (
 
 func BinaryOp(op string, f func(float64, float64) float64) Expr {
 	return func(m *Machine) error {
+		if len(m.stack) < 2 {
+			return errUnderflow
+		}
+
 		x := m.PopX()
 		y := m.Pop()
 
@@ -48,6 +52,10 @@ func BinaryOp(op string, f func(float64, float64) float64) Expr {
 
 func UnaryOp(op string, f func(float64) float64) Expr {
 	return func(m *Machine) error {
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
 		x := m.PopX()
 
 		if x == nil {
@@ -72,6 +80,10 @@ func UnaryOp(op string, f func(float64) float64) Expr {
 
 func TrigonometryOp(op string, f func(float64) float64) Expr {
 	return func(m *Machine) error {
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
 		x := m.PopX()
 
 		if x == nil {

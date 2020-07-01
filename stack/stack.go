@@ -1,9 +1,7 @@
 package stack
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 )
 
 type (
@@ -243,41 +241,6 @@ func GetSymbol(s string) Expr {
 		m.Push(*v.V)
 		return nil
 	}
-}
-
-func (m *Machine) MarshalJSON() ([]byte, error) {
-	var sb strings.Builder
-
-	sb.WriteString("{")
-	st, err := json.Marshal(m.stack)
-
-	if err != nil {
-		return nil, err
-	}
-
-	sb.WriteString(`"stack": `)
-	sb.Write(st)
-
-	vv, err := json.Marshal(m.vars)
-
-	if err != nil {
-		return nil, err
-	}
-
-	sb.WriteString(`, "vars": `)
-	sb.Write(vv)
-
-	lt, err := json.Marshal(m.x)
-
-	if err != nil {
-		return nil, err
-	}
-
-	sb.WriteString(`, "last": `)
-	sb.Write(lt)
-	sb.WriteString("}")
-
-	return []byte(sb.String()), nil
 }
 
 func (m *Machine) makeVal(s float64) Value {

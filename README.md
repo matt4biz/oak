@@ -192,10 +192,14 @@ as well as these operations on the stack / machine
 	eng    pop the top of stack and set engineering notation
 	       (scientific notation, but exponents are multiples of 3)
 	fix    pop the top of stack and set fixed precision
+	over   duplicate the second-from-top item onto the stack
+	       {w,z,y,x} -> {z,y,x,y}
 	roll   roll the top of stack to the bottom
 	       {w,z,y,x} -> {x,w,z,y}
+	save   pop a string off the stack and save the machine's
+	       state into that file (for a future "load")
 	sci    pop the top of stack and set scientific format
-	show   display current modes; leaves stack unchanged
+	status display current modes; leaves stack unchanged
 	swap   swap the top two items
 	       {w,z,y,x} -> {w,z,x,y}
 	top    causes the top of stack to be the result
@@ -274,7 +278,8 @@ For example,
     2: 0177
     3: 0x007f
 
-If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Use ctrl-D to exit.
+If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. 
+Exit with "bye" or ctrl-D to exit; the latter will not save any state.
 
 oak uses Go's default floating point representation if no display mode is set.
 

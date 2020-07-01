@@ -324,7 +324,17 @@ func (m *Machine) SetBuiltins() {
 	}
 
 	m.builtin["save"] = func(m *Machine) error {
-		fn := m.Pop().V.(string)
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
+		x := m.Pop()
+
+		if x.T != stringer {
+			return fmt.Errorf("save: invalid operand x=%#v", x)
+		}
+
+		fn := x.V.(string)
 
 		return m.SaveToFile(fn)
 	}

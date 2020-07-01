@@ -189,6 +189,28 @@ func TestMachineDup2(t *testing.T) {
 	}
 }
 
+func TestMachineOver(t *testing.T) {
+	m := &Machine{}
+
+	m.Push(m.makeVal(2))
+	m.Push(m.makeVal(1))
+	_ = m.Over()
+
+	var stack []float64
+
+	for x := m.Pop(); x != nil; x = m.Pop() {
+		if xf, ok := x.V.(float64); ok {
+			stack = append(stack, xf)
+		}
+	}
+
+	want := []float64{2, 1, 2}
+
+	if !reflect.DeepEqual(stack, want) {
+		t.Errorf("wanted %v, got %v", want, stack)
+	}
+}
+
 func TestMachineRoll(t *testing.T) {
 	m := &Machine{}
 

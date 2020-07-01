@@ -2,12 +2,12 @@ package stack
 
 import (
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"os"
 )
 
-var errUnderflow = errors.New("stack underflow")
+var (
+	errUnderflow = errors.New("stack underflow")
+)
 
 func Nop(m *Machine) error {
 	return nil
@@ -73,7 +73,7 @@ func (m *Machine) Swap() error {
 		return errUnderflow
 	}
 
-	m.stack = append(m.stack[0:l-2], m.stack[l-1], m.stack[l-2])
+	m.stack[l-2], m.stack[l-1] = m.stack[l-1], m.stack[l-2]
 	return nil
 }
 
@@ -155,20 +155,4 @@ func (m *Machine) SetRadians() {
 func (m *Machine) Quit() {
 	// TODO - save state if required
 	os.Exit(0)
-}
-
-func (m *Machine) SaveToFile(fn string) error {
-	b, err := m.MarshalJSON()
-
-	if err != nil {
-		return fmt.Errorf("dump %w", err)
-	}
-
-	err = ioutil.WriteFile(fn, b, 0644)
-
-	if err != nil {
-		return fmt.Errorf("save %w", err)
-	}
-
-	return nil
 }

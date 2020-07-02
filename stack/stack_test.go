@@ -8,9 +8,9 @@ import (
 func TestMachinePushPop(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(3))
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(3))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 
 	var stack []float64
 
@@ -30,8 +30,8 @@ func TestMachinePushPop(t *testing.T) {
 func TestMachineTop(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 
 	var top float64
 
@@ -71,8 +71,8 @@ func TestMachineEmpty(t *testing.T) {
 func TestMachinePopXLast(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 
 	var top, last float64
 
@@ -105,7 +105,7 @@ func TestMachinePopXLast(t *testing.T) {
 func TestMachinePopXLastSingle(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(1))
 
 	var top, last float64
 
@@ -138,8 +138,8 @@ func TestMachinePopXLastSingle(t *testing.T) {
 func TestMachineDup(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 	_ = m.Dup()
 
 	var stack []float64
@@ -170,8 +170,8 @@ func TestMachineDupEmpty(t *testing.T) {
 func TestMachineDup2(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 	_ = m.Dup2()
 
 	var stack []float64
@@ -192,8 +192,8 @@ func TestMachineDup2(t *testing.T) {
 func TestMachineOver(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 	_ = m.Over()
 
 	var stack []float64
@@ -214,9 +214,9 @@ func TestMachineOver(t *testing.T) {
 func TestMachineRoll(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(3))
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(3))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 	m.Roll()
 
 	var stack []float64
@@ -237,8 +237,8 @@ func TestMachineRoll(t *testing.T) {
 func TestMachineRoll2(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 	m.Roll()
 
 	var stack []float64
@@ -259,9 +259,9 @@ func TestMachineRoll2(t *testing.T) {
 func TestMachineSwap(t *testing.T) {
 	m := &Machine{}
 
-	m.Push(m.makeVal(3))
-	m.Push(m.makeVal(2))
-	m.Push(m.makeVal(1))
+	m.Push(m.makeFloatVal(3))
+	m.Push(m.makeFloatVal(2))
+	m.Push(m.makeFloatVal(1))
 	_ = m.Swap()
 
 	var stack []float64

@@ -155,7 +155,7 @@ func (m *Machine) Show() {
 // Put a numerical value onto the stack.
 func Number(f float64) Expr {
 	return func(m *Machine) error {
-		m.Push(m.makeVal(f))
+		m.Push(m.makeFloatVal(f))
 		return nil
 	}
 }
@@ -163,7 +163,7 @@ func Number(f float64) Expr {
 // Put a numerical value onto the stack.
 func Integer(n int) Expr {
 	return func(m *Machine) error {
-		m.Push(m.makeVal(float64(n)))
+		m.Push(m.makeFloatVal(float64(n)))
 		return nil
 	}
 }
@@ -176,7 +176,7 @@ func String(s string) Expr {
 	}
 }
 
-func (m *Machine) makeVal(s float64) Value {
+func (m *Machine) makeFloatVal(s float64) Value {
 	var v interface{}
 	var t tag
 
@@ -189,6 +189,14 @@ func (m *Machine) makeVal(s float64) Value {
 	}
 
 	return Value{t, m.mode, v, m}
+}
+
+func (m *Machine) makeStringVal(s string) Value {
+	return Value{T: stringer, V: s, m: m}
+}
+
+func (m *Machine) makeSymbol(s string) Value {
+	return Value{T: symbol, V: &Symbol{S: s}, m: m}
 }
 
 func trimQuotes(s string) string {

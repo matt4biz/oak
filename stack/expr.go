@@ -23,12 +23,12 @@ func BinaryOp(op string, f func(float64, float64) float64) Expr {
 			switch y.T {
 			case floater:
 				s := f(y.V.(float64), x.V.(float64))
-				m.Push(m.makeVal(s))
+				m.Push(m.makeFloatVal(s))
 				return nil
 
 			case integer:
 				s := f(float64(y.V.(int)), x.V.(float64))
-				m.Push(m.makeVal(s))
+				m.Push(m.makeFloatVal(s))
 				return nil
 			}
 
@@ -36,12 +36,12 @@ func BinaryOp(op string, f func(float64, float64) float64) Expr {
 			switch y.T {
 			case floater:
 				s := f(y.V.(float64), float64(x.V.(int)))
-				m.Push(m.makeVal(s))
+				m.Push(m.makeFloatVal(s))
 				return nil
 
 			case integer:
 				s := f(float64(y.V.(int)), float64(x.V.(int)))
-				m.Push(m.makeVal(s))
+				m.Push(m.makeFloatVal(s))
 				return nil
 			}
 		}
@@ -65,12 +65,12 @@ func UnaryOp(op string, f func(float64) float64) Expr {
 		switch x.T {
 		case floater:
 			s := f(x.V.(float64))
-			m.Push(m.makeVal(s))
+			m.Push(m.makeFloatVal(s))
 			return nil
 
 		case integer:
 			s := f(float64(x.V.(int)))
-			m.Push(m.makeVal(s))
+			m.Push(m.makeFloatVal(s))
 			return nil
 		}
 
@@ -99,7 +99,7 @@ func TrigonometryOp(op string, f func(float64) float64) Expr {
 			}
 
 			s = f(s)
-			m.Push(m.makeVal(s))
+			m.Push(m.makeFloatVal(s))
 			return nil
 
 		case integer:
@@ -110,7 +110,7 @@ func TrigonometryOp(op string, f func(float64) float64) Expr {
 			}
 
 			s = f(s)
-			m.Push(m.makeVal(s))
+			m.Push(m.makeFloatVal(s))
 			return nil
 		}
 

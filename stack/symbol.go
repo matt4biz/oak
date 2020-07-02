@@ -149,7 +149,11 @@ func Recall(m *Machine) error {
 		return fmt.Errorf("recall: invalid symbol %#v", u.V)
 	}
 
-	v := m.vars[u.S].V
+	v, err := m.RecallVar(u)
+
+	if err != nil {
+		return err
+	}
 
 	m.Push(*v)
 	return nil

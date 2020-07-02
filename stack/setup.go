@@ -36,7 +36,7 @@ func (m *Machine) SetBuiltins() {
 				return nil
 
 			case integer:
-				t.V = -t.V.(int)
+				t.V = uint(-int(t.V.(uint)))
 				return nil
 			}
 
@@ -74,8 +74,7 @@ func (m *Machine) SetBuiltins() {
 	}
 
 	m.builtin["status"] = func(m *Machine) error {
-		m.Show()
-		return nil
+		return Show(m)
 	}
 
 	// STACK OPERATIONS
@@ -121,7 +120,7 @@ func (m *Machine) SetBuiltins() {
 			v = s
 			t = floater
 		} else {
-			v = int(s)
+			v = uint(s)
 			t = integer
 		}
 
@@ -132,7 +131,7 @@ func (m *Machine) SetBuiltins() {
 	// BASE CONVERSION
 
 	m.builtin["base"] = func(m *Machine) error {
-		var b int
+		var b uint
 
 		x := m.Pop()
 
@@ -142,11 +141,12 @@ func (m *Machine) SetBuiltins() {
 
 		switch x.T {
 		case floater:
-			b = int(x.V.(float64))
+			b = uint(x.V.(float64))
 		case integer:
-			b = x.V.(int)
+			b = x.V.(uint)
 		case stringer:
-			b, _ = strconv.Atoi(x.V.(string))
+			i, _ := strconv.Atoi(x.V.(string))
+			b = uint(i)
 		}
 
 		switch b {
@@ -173,7 +173,7 @@ func (m *Machine) SetBuiltins() {
 		if t := m.Top(); t != nil {
 			switch t.T {
 			case floater:
-				t.V = int(t.V.(float64))
+				t.V = uint(t.V.(float64))
 				t.T = integer
 				return nil
 
@@ -193,7 +193,7 @@ func (m *Machine) SetBuiltins() {
 		if t := m.Top(); t != nil {
 			switch t.T {
 			case floater:
-				t.V = int(t.V.(float64))
+				t.V = uint(t.V.(float64))
 				t.T = integer
 				return nil
 
@@ -213,7 +213,7 @@ func (m *Machine) SetBuiltins() {
 		if t := m.Top(); t != nil {
 			switch t.T {
 			case floater:
-				t.V = int(t.V.(float64))
+				t.V = uint(t.V.(float64))
 				t.T = integer
 				return nil
 
@@ -236,7 +236,7 @@ func (m *Machine) SetBuiltins() {
 				return nil
 
 			case integer:
-				t.V = float64(t.V.(int))
+				t.V = float64(t.V.(uint))
 				t.T = floater
 				return nil
 			}
@@ -281,9 +281,9 @@ func (m *Machine) SetBuiltins() {
 
 		switch x.T {
 		case floater:
-			m.SetFixed(int(x.V.(float64)))
+			m.SetFixed(uint(x.V.(float64)))
 		case integer:
-			m.SetFixed(x.V.(int))
+			m.SetFixed(x.V.(uint))
 		}
 
 		return nil
@@ -298,9 +298,9 @@ func (m *Machine) SetBuiltins() {
 
 		switch x.T {
 		case floater:
-			m.SetScientific(int(x.V.(float64)))
+			m.SetScientific(uint(x.V.(float64)))
 		case integer:
-			m.SetScientific(x.V.(int))
+			m.SetScientific(x.V.(uint))
 		}
 
 		return nil
@@ -315,9 +315,9 @@ func (m *Machine) SetBuiltins() {
 
 		switch x.T {
 		case floater:
-			m.SetEngineering(int(x.V.(float64)))
+			m.SetEngineering(uint(x.V.(float64)))
 		case integer:
-			m.SetEngineering(x.V.(int))
+			m.SetEngineering(x.V.(uint))
 		}
 
 		return nil

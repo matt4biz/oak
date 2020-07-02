@@ -17,11 +17,7 @@ func TestSaveLoad(t *testing.T) {
 
 	m1 := New()
 
-	m1.Push(m1.makeFloatVal(3))
-	m1.Push(m1.makeFloatVal(2))
-	m1.Push(m1.makeFloatVal(1))
-
-	_, err = m1.Eval(1, []Expr{Add})
+	_, err = m1.Eval(1, []Expr{Number(3), Number(2), Number(1), Add})
 
 	if err != nil {
 		t.Fatalf("add: %s", err)
@@ -31,24 +27,19 @@ func TestSaveLoad(t *testing.T) {
 	// into a new, clean machine, and see if we
 	// still have the values and variables
 
-	m1.Push(m1.makeStringVal(file.Name()))
-
-	if _, err = m1.Eval(1, []Expr{Save}); err != nil {
+	if _, err = m1.Eval(1, []Expr{String(file.Name()), Save}); err != nil {
 		t.Fatalf("save: %s", err)
 	}
 
 	m2 := New()
 
-	m2.Push(m2.makeStringVal(file.Name()))
-
-	if _, err = m2.Eval(1, []Expr{Load}); err != nil {
+	if _, err = m2.Eval(1, []Expr{String(file.Name()), Load}); err != nil {
 		t.Fatalf("load: %s", err)
 	}
 
 	// and see how we're doing
 
-	e := GetSymbol("$1")
-	v, err := m2.Eval(2, []Expr{e, Add})
+	v, err := m2.Eval(2, []Expr{GetSymbol("$1"), Add, Show})
 
 	if err != nil {
 		t.Fatalf("get: %s", err)
@@ -65,5 +56,4 @@ func TestSaveLoad(t *testing.T) {
 	if r != "6" {
 		t.Errorf("invalid result: %#v", r)
 	}
-
 }

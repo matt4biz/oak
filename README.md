@@ -53,7 +53,7 @@ Note that in the examples below, the use of these four named slots does not indi
 it is actually unlimited.
 
 ### Numbers
-All numbers are currently evaluated as `float64` values in base 10. oak allows input in normal or scientific formats, e.g.
+Decimal numbers (when the base is 10, which is the default) are evaluated as 64-bit floating point numbers, e.g.
 
 	1
 	1.
@@ -62,6 +62,15 @@ All numbers are currently evaluated as `float64` values in base 10. oak allows i
 	-0.1
 	1.1e+3
 	1e-3
+
+When the base is set to an integer mode (binary, octal, hexadecimal) numbers are evaluated as unsigned integers and may be written with 0[bB] or 0[xX] prefixes if desired, e.g.
+
+	0b1101
+	0177
+	0x283e
+	101
+
+Note that integers without a leading 0 will be interpreted as base 10 integer values. See more below.
 
 A number is always pushed onto the top of the stack.
 
@@ -98,7 +107,7 @@ By default, the calculator operates in base-10 floating point mode, but may be c
 
 Changing the base to binary, octal, or hexadecimal has these effects:
 
-- input numbers are taken to be integers, with these options:
+- input numbers are taken to be unsigned integers, with these options:
     - a `0[bB]` prefix indicates binary
     - a `0[xX]` prefix indicates hexadecimal
     - numbers with a leading 0 will be taken as octal (e.g., 0177 is decimal 127)
@@ -106,7 +115,7 @@ Changing the base to binary, octal, or hexadecimal has these effects:
 
 If the base was changed by a conversion command ("bin", "oct", or "hex"):
 
-- the top of stack will be converted to an integer (truncated) when the base is changed to binary/octal/hex
+- the top of stack will be converted to an unsigned integer (truncated) when the base is changed to binary/octal/hex
 - other numbers (deeper in the stack) remain as floating point numbers unless disturbed, and will retain their full values
   if the mode is changed back
 
@@ -197,7 +206,7 @@ Variables have two forms
 
 ### Operations
 
-oak offers the following binary operators:
+oak offers the following floating-point binary operators:
 
 	+      {y,x} -> x = y+x
 	-      {y,x} -> x = y-x
@@ -205,6 +214,13 @@ oak offers the following binary operators:
 	/      {y,x} -> x = y/x
 	%      {y,x} -> x = y mod x
 	**     {y,x} -> x = y to the power x
+
+and these bitwise operations for unsigned integers:
+
+	&      {y,x} -> x = y&x   [bitwise and]
+	|      {y,x} -> x = y|x   [bitwise or]
+	^      {y,x} -> x = y^x   [bitwise xor]
+	~      {x}   -> x = !x    [bitwise not]
 
 along with the following unary functions, which replace the top of stack with a new value
 
@@ -236,7 +252,7 @@ and these binary functions
 	min    {y,x} -> x = min(x,y)
 	perc   {y,x} -> x = y*x / 100        [x percent of y]
 
-and these unary functions on user variables
+and these unary functions on user variables (e.g., `$a`)
 
 	!      {y,x} -> {}, vars[x]=y        [store]
 	@      {x}   -> x = vars[x]          [recall]
@@ -289,7 +305,7 @@ and these mode/conversion operations
 	hex    convert to integer, set base 16
 	dec    convert to normal (floating point) mode, base 10
 
-and these constants
+and finally these constants
 
 	e      base of natural logarithms, 2.71828
 	pi     ratio of diameter to circumference, 3.14159

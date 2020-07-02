@@ -41,7 +41,7 @@ func Load(m *Machine) error {
 // Settings is used to save internal settings.
 type Settings struct {
 	Base    radix   `json:"base"`
-	Digits  int     `json:"digits"`
+	Digits  uint    `json:"digits"`
 	Display display `json:"display_mode"`
 	Mode    mode    `json:"trig_mode"`
 }

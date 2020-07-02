@@ -104,7 +104,7 @@ func (v Value) String() string {
 
 		// we need to find out how many bits; we will then round
 		// that value based on the radix (2:8, 8:3, 16:2)
-		i := v.V.(int)
+		i := v.V.(uint)
 
 		switch v.m.base {
 		case base02:
@@ -112,9 +112,9 @@ func (v Value) String() string {
 		case base08:
 			return fmt.Sprintf("%#0*o", places(i, 3, 9), i)
 		case base16:
-			return fmt.Sprintf("%#0*x", places(i, 4, 16), i)
+			return fmt.Sprintf("%#0*x", places(i, 4, 8), i)
 		default:
-			return strconv.Itoa(v.V.(int))
+			return strconv.Itoa(int(v.V.(uint)))
 		}
 
 	case stringer:
@@ -130,23 +130,20 @@ func (v Value) String() string {
 	return "<nil>"
 }
 
-func places(i int, b int, m int) int {
+func places(i uint, group int, min int) int {
 	s := 0 // space for sign
 
-	// we only calculate based on the bits
-	// required for the absolute value
+	n := bits.Len(i)
 
-	if i < 0 {
-		i = -i
-		s = 1
+	if n == 0 {
+		return min
 	}
 
-	n := bits.Len(uint(i))
-	r := n / m
+	r := n / min
 
-	if n%m != 0 {
+	if n%min != 0 {
 		r += 1
 	}
 
-	return s + (r * b)
+	return s + (r * group)
 }

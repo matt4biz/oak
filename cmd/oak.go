@@ -23,9 +23,9 @@ func main() {
 		fn      string
 		input   string
 		image   string
-		fixed   int
-		scip    int
-		engr    int
+		fixed   uint
+		scip    uint
+		engr    uint
 		radians bool
 		show    bool
 	)
@@ -33,9 +33,9 @@ func main() {
 	flag.StringVar(&fn, "f", "", "command file")
 	flag.StringVar(&input, "e", "", "command text")
 	flag.StringVar(&image, "i", "", "saved image")
-	flag.IntVar(&fixed, "fix", 0, "fixed precision")
-	flag.IntVar(&scip, "sci", 0, "scientific precision")
-	flag.IntVar(&engr, "eng", 0, "engineering mode")
+	flag.UintVar(&fixed, "fix", 0, "fixed precision")
+	flag.UintVar(&scip, "sci", 0, "scientific precision")
+	flag.UintVar(&engr, "eng", 0, "engineering mode")
 	flag.BoolVar(&radians, "rad", false, "use radians mode")
 	flag.BoolVar(&debug, "debug", false, "show parsing")
 	flag.BoolVar(&show, "version", false, "show version")

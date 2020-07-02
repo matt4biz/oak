@@ -27,7 +27,7 @@ func BinaryOp(op string, f func(float64, float64) float64) Expr {
 				return nil
 
 			case integer:
-				s := f(float64(y.V.(int)), x.V.(float64))
+				s := f(float64(y.V.(uint)), x.V.(float64))
 				m.Push(m.makeFloatVal(s))
 				return nil
 			}
@@ -35,12 +35,12 @@ func BinaryOp(op string, f func(float64, float64) float64) Expr {
 		case integer:
 			switch y.T {
 			case floater:
-				s := f(y.V.(float64), float64(x.V.(int)))
+				s := f(y.V.(float64), float64(x.V.(uint)))
 				m.Push(m.makeFloatVal(s))
 				return nil
 
 			case integer:
-				s := f(float64(y.V.(int)), float64(x.V.(int)))
+				s := f(float64(y.V.(uint)), float64(x.V.(uint)))
 				m.Push(m.makeFloatVal(s))
 				return nil
 			}
@@ -69,7 +69,7 @@ func UnaryOp(op string, f func(float64) float64) Expr {
 			return nil
 
 		case integer:
-			s := f(float64(x.V.(int)))
+			s := f(float64(x.V.(uint)))
 			m.Push(m.makeFloatVal(s))
 			return nil
 		}
@@ -103,7 +103,7 @@ func TrigonometryOp(op string, f func(float64) float64) Expr {
 			return nil
 
 		case integer:
-			var s = float64(x.V.(int))
+			var s = float64(x.V.(uint))
 
 			if x.M == degrees {
 				s *= math.Pi / 180
@@ -118,6 +118,53 @@ func TrigonometryOp(op string, f func(float64) float64) Expr {
 	}
 }
 
+func BinaryBitwiseOp(op string, f func(y, x uint) uint) Expr {
+	return func(m *Machine) error {
+		if len(m.stack) < 2 {
+			return errUnderflow
+		}
+
+		x := m.PopX()
+		y := m.Pop()
+
+		if x == nil || y == nil {
+			return fmt.Errorf("%s: empty stack", op)
+		}
+
+		if x.T == integer && y.T == integer {
+			r := f(y.V.(uint), x.V.(uint))
+
+			m.Push(m.makeIntVal(r))
+			return nil
+		}
+
+		return fmt.Errorf("%s: mismatched operands y=%#v, x=%#v", op, y.V, x.V)
+	}
+}
+
+func UnaryBitwiseOp(op string, f func(x uint) uint) Expr {
+	return func(m *Machine) error {
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
+		x := m.PopX()
+
+		if x == nil {
+			return fmt.Errorf("%s: empty stack", op)
+		}
+
+		if x.T != integer {
+			return fmt.Errorf("%s: invalid operand %#v", op, x)
+		}
+
+		r := f(x.V.(uint))
+
+		m.Push(m.makeIntVal(r))
+		return nil
+	}
+}
+
 var Degrees = func(m *Machine) error {
 	m.mode = degrees
 
@@ -129,7 +176,7 @@ var Degrees = func(m *Machine) error {
 			return nil
 
 		case integer:
-			t.V = int(float64(t.V.(int)) * 180 / math.Pi)
+			t.V = int(float64(t.V.(uint)) * 180 / math.Pi)
 			t.M = degrees
 			return nil
 		}
@@ -151,7 +198,7 @@ var Radians = func(m *Machine) error {
 			return nil
 
 		case integer:
-			t.V = int(float64(t.V.(int)) * math.Pi / 180)
+			t.V = int(float64(t.V.(uint)) * math.Pi / 180)
 			t.M = radians
 			return nil
 		}
@@ -169,6 +216,11 @@ var (
 	Divide   = BinaryOp("div", func(y, x float64) float64 { return y / x })
 	Modulo   = BinaryOp("mod", func(y, x float64) float64 { return math.Mod(y, x) })
 	Power    = BinaryOp("pow", func(y, x float64) float64 { return math.Pow(y, x) })
+
+	Not = UnaryBitwiseOp("not", func(x uint) uint { return ^x })
+	And = BinaryBitwiseOp("and", func(y, x uint) uint { return y & x })
+	Or  = BinaryBitwiseOp("and", func(y, x uint) uint { return y | x })
+	Xor = BinaryBitwiseOp("and", func(y, x uint) uint { return y ^ x })
 )
 
 func Predefined(s string) Expr {

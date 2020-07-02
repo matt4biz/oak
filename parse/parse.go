@@ -182,7 +182,7 @@ func (p *Parser) number(s string) (result stack.Expr, err error) {
 			return nil, err
 		}
 
-		return stack.Integer(int(n)), nil
+		return stack.Integer(uint(n)), nil
 	}
 
 	if strings.HasPrefix(s, "0b") || strings.HasPrefix(s, "0B") ||
@@ -238,6 +238,14 @@ func (p *Parser) operator(s string) (stack.Expr, error) {
 		return stack.Store, nil
 	case "@":
 		return stack.Recall, nil
+	case "~":
+		return stack.Not, nil
+	case "&":
+		return stack.And, nil
+	case "|":
+		return stack.Or, nil
+	case "^":
+		return stack.Xor, nil
 	}
 
 	return nil, errUnknown

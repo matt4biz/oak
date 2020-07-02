@@ -137,17 +137,17 @@ func (m *Machine) Roll() {
 	}
 }
 
-func (m *Machine) SetFixed(d int) {
+func (m *Machine) SetFixed(d uint) {
 	m.disp = fixed
 	m.digits = d
 }
 
-func (m *Machine) SetScientific(d int) {
+func (m *Machine) SetScientific(d uint) {
 	m.disp = scientific
 	m.digits = d
 }
 
-func (m *Machine) SetEngineering(d int) {
+func (m *Machine) SetEngineering(d uint) {
 	m.disp = engineering
 	m.digits = d
 }

@@ -5,10 +5,10 @@ import (
 )
 
 type (
-	tag     int
-	mode    int
-	radix   int
-	display int
+	tag     uint
+	mode    uint
+	radix   uint
+	display uint
 )
 
 const (
@@ -49,7 +49,7 @@ type Machine struct {
 	vars    map[string]*Symbol
 	words   map[string]*Word
 	builtin map[string]Expr
-	digits  int
+	digits  uint
 	disp    display
 	base    radix
 	mode    mode
@@ -148,8 +148,10 @@ func (m *Machine) Display() string {
 
 	return "free"
 }
-func (m *Machine) Show() {
+
+func Show(m *Machine) error {
 	fmt.Println("base:", m.Base(), "mode:", m.Mode(), "display:", m.Display())
+	return nil
 }
 
 // Put a numerical value onto the stack.
@@ -161,7 +163,7 @@ func Number(f float64) Expr {
 }
 
 // Put a numerical value onto the stack.
-func Integer(n int) Expr {
+func Integer(n uint) Expr {
 	return func(m *Machine) error {
 		m.Push(m.makeFloatVal(float64(n)))
 		return nil
@@ -171,7 +173,7 @@ func Integer(n int) Expr {
 // Put a string value onto the stack.
 func String(s string) Expr {
 	return func(m *Machine) error {
-		m.Push(Value{stringer, m.mode, trimQuotes(s), m})
+		m.Push(m.makeStringVal(s))
 		return nil
 	}
 }
@@ -184,19 +186,19 @@ func (m *Machine) makeFloatVal(s float64) Value {
 		v = s
 		t = floater
 	} else {
-		v = int(s)
+		v = uint(s)
 		t = integer
 	}
 
 	return Value{t, m.mode, v, m}
 }
 
-func (m *Machine) makeStringVal(s string) Value {
-	return Value{T: stringer, V: s, m: m}
+func (m *Machine) makeIntVal(i uint) Value {
+	return Value{T: integer, M: m.mode, V: i, m: m}
 }
 
-func (m *Machine) makeSymbol(s string) Value {
-	return Value{T: symbol, V: &Symbol{S: s}, m: m}
+func (m *Machine) makeStringVal(s string) Value {
+	return Value{T: stringer, V: trimQuotes(s), m: m}
 }
 
 func trimQuotes(s string) string {

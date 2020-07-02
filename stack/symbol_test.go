@@ -5,10 +5,7 @@ import "testing"
 func TestResultVar(t *testing.T) {
 	m := &Machine{vars: make(map[string]*Symbol)}
 
-	m.Push(m.makeFloatVal(3))
-	m.Push(m.makeFloatVal(2))
-
-	_, err := m.Eval(1, []Expr{Add})
+	_, err := m.Eval(1, []Expr{Integer(3), Integer(2), Add})
 
 	if err != nil {
 		t.Fatalf("add: %s", err)
@@ -16,8 +13,7 @@ func TestResultVar(t *testing.T) {
 
 	// we should now have a symbol for the result
 
-	e := GetSymbol("$1")
-	v, err := m.Eval(2, []Expr{e})
+	v, err := m.Eval(2, []Expr{GetSymbol("$1")})
 
 	if err != nil {
 		t.Fatalf("get: %s", err)
@@ -39,10 +35,7 @@ func TestResultVar(t *testing.T) {
 func TestUserVar(t *testing.T) {
 	m := &Machine{vars: make(map[string]*Symbol)}
 
-	m.Push(m.makeFloatVal(3))
-	m.Push(m.makeSymbol("$a"))
-
-	_, err := m.Eval(1, []Expr{Store})
+	_, err := m.Eval(1, []Expr{Integer(3), GetUserVar("$a"), Store})
 
 	if err != nil {
 		t.Fatalf("store: %s", err)
@@ -50,10 +43,7 @@ func TestUserVar(t *testing.T) {
 
 	// we should now have a symbol for the result
 
-	m.Push(m.makeFloatVal(1))
-
-	e := GetUserVar("$a")
-	v, err := m.Eval(2, []Expr{e, Recall, Add})
+	v, err := m.Eval(2, []Expr{Integer(1), GetUserVar("$a"), Recall, Add})
 
 	if err != nil {
 		t.Fatalf("get-add: %s", err)

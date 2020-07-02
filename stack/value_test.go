@@ -28,7 +28,7 @@ func TestValueFixedFloat(t *testing.T) {
 
 	table := []struct {
 		v float64
-		d int
+		d uint
 		s string
 	}{
 		{0.1, 1, "0.1"},
@@ -53,7 +53,7 @@ func TestValueSciFloat(t *testing.T) {
 
 	table := []struct {
 		v float64
-		d int
+		d uint
 		s string
 	}{
 		{0.1, 1, "1.0e-01"},
@@ -78,7 +78,7 @@ func TestValueEngFloat(t *testing.T) {
 
 	table := []struct {
 		v float64
-		d int
+		d uint
 		s string
 	}{
 		{0.0001, 1, "100e-06"},
@@ -127,7 +127,8 @@ func TestValueEngFloat(t *testing.T) {
 
 func TestPlacesBinary(t *testing.T) {
 	table := []struct {
-		i, r int
+		i uint
+		r int
 	}{
 		{7, 8},
 		{257, 16},
@@ -145,7 +146,8 @@ func TestPlacesBinary(t *testing.T) {
 
 func TestPlacesOctal(t *testing.T) {
 	table := []struct {
-		i, r int
+		i uint
+		r int
 	}{
 		{7, 3},
 		{257, 3},
@@ -163,7 +165,8 @@ func TestPlacesOctal(t *testing.T) {
 
 func TestPlacesHexadecimal(t *testing.T) {
 	table := []struct {
-		i, r int
+		i uint
+		r int
 	}{
 		{7, 4},
 		{257, 4},
@@ -183,7 +186,7 @@ func TestValueBinaryInt(t *testing.T) {
 	m := &Machine{}
 
 	table := []struct {
-		v int
+		v uint
 		b radix
 		s string
 	}{
@@ -208,9 +211,9 @@ func TestValueBinaryInt(t *testing.T) {
 		{1, base16, "0x0001"},
 		{7, base16, "0x0007"},
 		{255, base16, "0x00ff"},
-		{256, base16, "0x0100"},
-		{65535, base16, "0xffff"},
-		{65537, base16, "0x00010001"},
+		{256, base16, "0x00000100"},
+		{65535, base16, "0x0000ffff"},
+		{65537, base16, "0x000000010001"},
 	}
 
 	for _, tt := range table {

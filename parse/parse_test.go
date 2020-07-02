@@ -20,7 +20,7 @@ func (st subTest) run(t *testing.T) {
 	s := scan.New(c, st.name, b)
 
 	m := stack.New()
-	p := New(m, s, os.Stderr, 0, true)
+	p := New(m, s, os.Stderr, 1, true)
 
 	// we can't actually compare the parser's output directly
 	// because it's a list of closures, which can't be tested
@@ -31,7 +31,7 @@ func (st subTest) run(t *testing.T) {
 	var i int
 
 	for got, _ := p.Line(); len(got) > 0 && got[0] != nil; got, _ = p.Line() {
-		top, err := m.Eval(0, got)
+		top, err := m.Eval(i+1, got)
 
 		if err != nil {
 			t.Errorf("couldn't eval %v: %s", got, err)
@@ -96,6 +96,21 @@ var subTests = []subTest{
 		name:  "simple-mode-chg",
 		input: `3 fix "rad" mode 0.5236 sin`,
 		want:  []string{"0.500"},
+	},
+	{
+		name:  "last-x",
+		input: `2 1 +, 3 $0 +`,
+		want:  []string{"3", "4"},
+	},
+	{
+		name:  "result-var",
+		input: `2 1 +, 3 $1 +`,
+		want:  []string{"3", "6"},
+	},
+	{
+		name:  "user-var",
+		input: `2 1 +, 3 $name !, $name@+`,
+		want:  []string{"3", "3", "6"},
 	},
 	{
 		name:  "bad-parse",

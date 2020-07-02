@@ -391,14 +391,13 @@ the the REPL will display the new status before the first input line:
 Note that the commands in the `.oakrc` file do not leave result variables or a "last x" value.
 
 ## To do
-Here are a few of the possible enhancements:
+Here are a few possible enhancements:
 
-- add a few missing functions (e.g. acos, tanh)
-- bitwise operators, similar to the HP 16c
-- interest-rate calculations, similar to the HP 12c
-- statistical functions, similar to the HP 11c or 15c
-- string functions (really?)
+- add a few missing trig functions (e.g. acos, tanh)
 - vector operations
+- string functions (really?)
+- statistical functions, similar to the HP 11c
+- interest-rate calculations, similar to the HP 12c
 - user-defined words (a la Forth), along with logic & iteration
 - oh, and we need a circular slide rule mode of operation, too ;-)
 

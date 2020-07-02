@@ -357,7 +357,11 @@ func (m *Machine) SetBuiltins() {
 
 	m.builtin["dump"] = func(m *Machine) error {
 		fmt.Println("DUMP ========")
-		fmt.Printf("LAST: %s\n", *m.x)
+		if m.x != nil {
+			fmt.Printf("LAST: %s\n", *m.x)
+		} else {
+			fmt.Printf("LAST: <nil>\n")
+		}
 
 		for i, l := 0, len(m.stack); i < len(m.stack); i++ {
 			l--
@@ -367,7 +371,7 @@ func (m *Machine) SetBuiltins() {
 		fmt.Println()
 
 		for k, v := range m.vars {
-			fmt.Printf("V %s: %s\n", k, *v)
+			fmt.Printf("V %s: %s\n", k, *v.V)
 		}
 
 		fmt.Println("======== DUMP")

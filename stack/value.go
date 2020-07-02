@@ -121,7 +121,7 @@ func (v Value) String() string {
 		return v.V.(string)
 
 	case symbol:
-		return v.V.(*Symbol).V.String()
+		return v.V.(*Symbol).S
 
 	case word:
 		return fmt.Sprintf("<%s>", v.V.(*Word).N)

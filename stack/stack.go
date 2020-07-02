@@ -57,12 +57,6 @@ type Machine struct {
 	inter   bool
 }
 
-// Symbol represents a variable
-type Symbol struct {
-	S string `json:"symbol"`
-	V *Value `json:"value"`
-}
-
 // Word represents a stack-based function (macro).
 type Word struct {
 	N string
@@ -117,7 +111,7 @@ func (m *Machine) Eval(line int, exprs []Expr) (interface{}, error) {
 		return nil, nil
 	}
 
-	m.vars[s] = &Symbol{s, t}
+	m.vars[s] = &Symbol{S: s, V: t, result: true}
 
 	return t.String(), nil
 }
@@ -158,46 +152,6 @@ func (m *Machine) Show() {
 	fmt.Println("base:", m.Base(), "mode:", m.Mode(), "display:", m.Display())
 }
 
-// Lookup takes a variable name and returns the symbol
-// which includes its value.
-func (m *Machine) Lookup(s string) *Symbol {
-	if s == "$0" {
-		return &Symbol{s, m.x}
-	}
-
-	return m.vars[s]
-}
-
-// AddSymbol adds an empty variable to the machine for parsing.
-func (m *Machine) AddSymbol(s string) {
-	m.vars[s] = &Symbol{s, nil}
-}
-
-// Store writes (or overwrites) a given variable name with
-// a new value.
-func (m *Machine) Store(s *Symbol, v Value) {
-	m.vars[s.S] = &Symbol{s.S, &v}
-}
-
-func (m *Machine) Known(s string) bool {
-	_, ok := m.words[s]
-	return ok
-}
-
-func (m *Machine) Word(s string) (Expr, error) {
-	return nil, nil
-}
-
-func (m *Machine) Builtin(s string) (Expr, error) {
-	b, ok := m.builtin[s]
-
-	if !ok {
-		return nil, fmt.Errorf("%s unkown", s)
-	}
-
-	return b, nil
-}
-
 // Put a numerical value onto the stack.
 func Number(f float64) Expr {
 	return func(m *Machine) error {
@@ -218,28 +172,6 @@ func Integer(n int) Expr {
 func String(s string) Expr {
 	return func(m *Machine) error {
 		m.Push(Value{stringer, m.mode, trimQuotes(s), m})
-		return nil
-	}
-}
-
-// GetSymbol returns the value of the symbol (that may not
-// always be what we want, when it's time to load/store)
-func GetSymbol(s string) Expr {
-	return func(m *Machine) error {
-		v := m.Lookup(s)
-
-		if v == nil {
-			return fmt.Errorf("can't find %s", s)
-		}
-
-		if v.V == nil {
-			return fmt.Errorf("%s undefined", s)
-		}
-
-		// TODO - if it's a dollarVar push the value, but if
-		//   it's any other symbol, push the symbol instead
-
-		m.Push(*v.V)
 		return nil
 	}
 }

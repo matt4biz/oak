@@ -22,6 +22,7 @@ func main() {
 	var (
 		fn      string
 		input   string
+		image   string
 		fixed   int
 		scip    int
 		engr    int
@@ -31,6 +32,7 @@ func main() {
 
 	flag.StringVar(&fn, "f", "", "command file")
 	flag.StringVar(&input, "e", "", "command text")
+	flag.StringVar(&image, "i", "", "saved image")
 	flag.IntVar(&fixed, "fix", 0, "fixed precision")
 	flag.IntVar(&scip, "sci", 0, "scientific precision")
 	flag.IntVar(&engr, "eng", 0, "engineering mode")
@@ -56,8 +58,22 @@ func main() {
 		machine.SetRadians()
 	}
 
-	if err := readRuncom(); err != nil {
+	home, err := os.UserHomeDir()
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "home:", err)
+		os.Exit(-2)
+	}
+
+	if err := readRuncom(home); err != nil {
 		os.Exit(-1)
+	}
+
+	if image != "" {
+		if err := machine.LoadFromFile(image); err != nil {
+			fmt.Fprintf(os.Stderr, "image: %s\n", err)
+			os.Exit(-1)
+		}
 	}
 
 	if input != "" {
@@ -72,6 +88,6 @@ func main() {
 
 		fromInput(os.Stdout, f)
 	} else {
-		fromReadline()
+		fromReadline(home)
 	}
 }

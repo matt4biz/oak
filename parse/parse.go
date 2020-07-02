@@ -234,19 +234,29 @@ func (p *Parser) operator(s string) (stack.Expr, error) {
 		return stack.Modulo, nil
 	case "**":
 		return stack.Power, nil
+	case "!":
+		return stack.Store, nil
+	case "@":
+		return stack.Recall, nil
 	}
 
 	return nil, errUnknown
 }
 
-var dollarVar = regexp.MustCompile(`\$[0-9]+`)
+var (
+	resultVar = regexp.MustCompile(`\$[0-9]+`)
+	userVar   = regexp.MustCompile(`\$[a-zA-Z][a-zA-Z_0-9]*`)
+)
 
 func (p *Parser) symbol(s string) (stack.Expr, error) {
-	if dollarVar.MatchString(s) {
+	if resultVar.MatchString(s) {
 		return stack.GetSymbol(s), nil
 	}
 
-	// TODO - add support for named vars + sto/rcl
+	if userVar.MatchString(s) {
+		return stack.GetUserVar(s), nil
+	}
+
 	return nil, errUnknown
 }
 

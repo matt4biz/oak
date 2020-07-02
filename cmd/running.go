@@ -16,11 +16,19 @@ import (
 
 // from Readline runs the REPL and
 // parses one line at a time
-func fromReadline() {
+func fromReadline(home string) {
 	machine.SetInteractive()
 
+	config := readline.Config{
+		Prompt:                 "> ",
+		HistoryFile:            path.Join(home, ".oakhist"),
+		HistoryLimit:           50,
+		DisableAutoSaveHistory: false,
+		HistorySearchFold:      false,
+	}
+
 	il := 1
-	rl, err := readline.New("> ")
+	rl, err := readline.NewEx(&config)
 
 	if err != nil {
 		panic(err)
@@ -88,14 +96,8 @@ func fromInput(w io.Writer, r io.ReadCloser) (erred bool) {
 // readRuncom takes in the .oakrc file and
 // processes it silently (unless there's an
 // error, in which case it prints to stderr)
-func readRuncom() error {
+func readRuncom(home string) error {
 	var b bytes.Buffer
-
-	home, err := os.UserHomeDir()
-
-	if err != nil {
-		return err
-	}
 
 	file, err := os.Open(path.Join(home, ".oakrc"))
 

@@ -29,7 +29,6 @@ func (m *Machine) SaveToFile(fn string) error {
 	mi := MachineImage{
 		Stack: m.stack,
 		LastX: m.x,
-		Vars:  m.vars,
 		Words: m.words,
 		Status: Settings{
 			Digits:  m.digits,
@@ -37,6 +36,17 @@ func (m *Machine) SaveToFile(fn string) error {
 			Base:    m.base,
 			Mode:    m.mode,
 		},
+	}
+
+	// do not save result vars since their line
+	// numbers won't line up with a new session
+
+	mi.Vars = make(map[string]*Symbol, len(m.vars))
+
+	for k, v := range m.vars {
+		if !v.result {
+			mi.Vars[k] = v
+		}
 	}
 
 	b, err := json.Marshal(mi)

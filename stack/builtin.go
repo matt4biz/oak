@@ -32,10 +32,12 @@ func (m *Machine) Pop() *Value {
 	switch l := len(m.stack); l {
 	case 0:
 		return nil
+
 	case 1:
 		i := m.stack[0]
 		m.stack = nil
 		return i
+
 	default:
 		i := m.stack[l-1]
 		m.stack = m.stack[:l-1]
@@ -49,11 +51,13 @@ func (m *Machine) PopX() *Value {
 	switch l := len(m.stack); l {
 	case 0:
 		return nil
+
 	case 1:
 		i := m.stack[0]
 		m.stack = nil
 		m.x = i
 		return i
+
 	default:
 		i := m.stack[l-1]
 		m.stack = m.stack[:l-1]

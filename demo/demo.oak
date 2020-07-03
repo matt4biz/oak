@@ -18,11 +18,13 @@ sqrt
 2 **
 # re-use a result from above
 $1 +
-# clear the stack
+# clear everything
 clrall
 # start anew
 1 2 +
 # reuse the last x value (2)
 $0+
+# calculate a percentage
+40 5 perc +
 # we're done for now
 bye

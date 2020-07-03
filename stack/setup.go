@@ -69,7 +69,30 @@ func (m *Machine) SetBuiltins() {
 	}
 
 	m.builtin["clrall"] = func(m *Machine) error {
+		// TODO - clear other non-stack registers
+		//   when are defined, e.g. for statistics
+
 		m.stack = nil
+		m.vars = make(map[string]*Symbol)
+		m.x = nil
+		return nil
+	}
+
+	m.builtin["clrstk"] = func(m *Machine) error {
+		m.stack = nil
+		return nil
+	}
+
+	m.builtin["clrreg"] = func(m *Machine) error {
+		// TODO - clear other non-stack registers
+		//   when are defined, e.g. for statistics
+
+		m.x = nil
+		return nil
+	}
+
+	m.builtin["clrvar"] = func(m *Machine) error {
+		m.vars = make(map[string]*Symbol)
 		return nil
 	}
 

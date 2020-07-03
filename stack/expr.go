@@ -51,6 +51,56 @@ func BinaryOp(op string, f func(float64, float64) float64) Expr {
 	}
 }
 
+func BinarySaveOp(op string, f func(float64, float64) float64) Expr {
+	return func(m *Machine) error {
+		if len(m.stack) < 2 {
+			return errUnderflow
+		}
+
+		// same as above, but don't pop the y value;
+		// used e.g. for the percent/delta percent ops
+
+		// TODO - refactor out the common parts ...
+
+		x := m.PopX()
+		y := m.Top()
+
+		if x == nil || y == nil {
+			return fmt.Errorf("%s: empty stack", op)
+		}
+
+		switch x.T {
+		case floater:
+			switch y.T {
+			case floater:
+				s := f(y.V.(float64), x.V.(float64))
+				m.Push(m.makeFloatVal(s))
+				return nil
+
+			case integer:
+				s := f(float64(y.V.(uint)), x.V.(float64))
+				m.Push(m.makeFloatVal(s))
+				return nil
+			}
+
+		case integer:
+			switch y.T {
+			case floater:
+				s := f(y.V.(float64), float64(x.V.(uint)))
+				m.Push(m.makeFloatVal(s))
+				return nil
+
+			case integer:
+				s := f(float64(y.V.(uint)), float64(x.V.(uint)))
+				m.Push(m.makeFloatVal(s))
+				return nil
+			}
+		}
+
+		return fmt.Errorf("%s: mismatched operands y=%#v, x=%#v", op, y.V, x.V)
+	}
+}
+
 func UnaryOp(op string, f func(float64) float64) Expr {
 	return func(m *Machine) error {
 		if len(m.stack) < 1 {
@@ -324,7 +374,7 @@ func Predefined(s string) Expr {
 	case "dist":
 		return BinaryOp(s, math.Hypot)
 	case "dperc":
-		return BinaryOp(s, func(y, x float64) float64 { return (x - y) / y * 100 })
+		return BinarySaveOp(s, func(y, x float64) float64 { return (x - y) / y * 100 })
 	case "exp":
 		return UnaryOp(s, math.Exp)
 	case "fact":
@@ -346,7 +396,7 @@ func Predefined(s string) Expr {
 	case "min":
 		return BinaryOp(s, math.Min)
 	case "perc":
-		return BinaryOp(s, func(y, x float64) float64 { return y * x / 100 })
+		return BinarySaveOp(s, func(y, x float64) float64 { return y * x / 100 })
 	case "popcnt":
 		return UnaryBitwiseOp(s, func(x uint) uint { return uint(bits.OnesCount(x)) })
 	case "pow":

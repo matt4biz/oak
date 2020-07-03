@@ -58,11 +58,13 @@ Note that the result of the previous calculation remains on top of the stack, e.
 	2: 4
 
 ### The stack
-It is common to label the four topmost stack items using the letters x, y, z, and w (where x resides on top of the stack). 
-This helps explain how operators are taken from the stack and results pushed back. 
+It is common to label the four topmost stack items using the letters _x_, _y_, _z_, and _w_ (where _x_ resides on top of the stack); these are sometimes called _registers_ in the literature (for calculators with a limited stack size). 
 
-Note that in the examples below, the use of these four named slots does not indicate the stack is limited to four items; 
-it is actually unlimited.
+We use this notation below to explain how operators are taken from the stack and results pushed back. However, use of these four named registers in the examples does not indicate the stack is limited to four items; it is actually unlimited.
+
+There is an additional register known as "last x" which holds the last _x_ value popped off the stack to be used as an operand. It is not part of the stack, and is accessible through the result variable `$0` (more below).
+
+At present, oak does not support using a "bottom-of-stack" _t_ register whose contents are propagated upwards due to stack lift (used to provide a conveniently reusable constant in calculations); it doesn't seem necessary in a command-line calculator.
 
 ### Numbers
 Decimal numbers (when the base is 10, which is the default) are evaluated as 64-bit floating point numbers, e.g.
@@ -282,13 +284,13 @@ along with the following floating-point unary functions, which replace the top o
 	tan    tangent
 	trunc  truncate
 
-and these floating-point binary functions
+and these floating-point binary functions (some save the _y_ register)
 
 	dist   {y,x} -> x = sqrt(x**2 + y**2)
-	dperc  {y,x} -> x = (x-y)/y * 100    [percent change from y to x]
+	dperc  {y,x} -> y=y, x = (x-y)/y * 100 [percent change from y to x]
 	max    {y,x} -> x = max(x,y)
 	min    {y,x} -> x = min(x,y)
-	perc   {y,x} -> x = y*x / 100        [x percent of y]
+	perc   {y,x} -> y=y, x = y*x / 100     [x percent of y]
 
 and these bitwise unary functions
 
@@ -303,8 +305,11 @@ and these unary functions on user variables (e.g., `$a`)
 
 as well as these operations on the stack / machine
 
-	clr    reset top of stack to 0
-	clrall reset the entire stack to empty
+	clr    reset top of stack (x register) to 0
+	clrall reset everything: stack, last x, variables
+	clrreg reset all non-stack registers (for now, "last x")
+	clrstk reset the entire stack to empty
+	clrvar reset the variable memory (user-defined and results)
 	depth  push the existing stack depth onto it
 	       {w,z,y,x} -> {z,y,x,#}
 	dump   display the stack & variables, leave stack unchanged
@@ -421,7 +426,7 @@ If neither `-e` nor `-f` is present (the former takes precedence), oak starts an
 
 If the display or angular modes are set from the command line, these values override the options in `.oak.yml` (see below) or in any stored machine image loaded with `-i`.
 
-Demo mode ignores all command line options except `-f` (which must be set) as well as any local configuration in `.oak.yml`.
+Demo mode ignores all command-line options except `-f` (which must be set) as well as any local configuration in `.oak.yml`.
 
 ## History
 The REPL stores up to 50 lines of command history in `$HOME/.oakhist` which is available to your next session (through the normal operations at the prompt, e.g., up-arrow).
@@ -463,7 +468,7 @@ is equivalent to `1 2, 3+, sqr`.
 
 Note that the commands in the `.oak.yml` file do not leave result variables or a "last x" value when the machine starts. There will be no output unless an error occurs, in which case the machine will print the error and quit.
 
-Also, certain command line options override the options set in the configuration file (see above).
+Also, certain command-line options override the options set in the configuration file (see above).
 
 ## To do
 Here are a few possible enhancements:

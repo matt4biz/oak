@@ -138,6 +138,11 @@ var subTests = []subTest{
 		want:  []string{"3", "3", "6"},
 	},
 	{
+		name:  "percent",
+		input: `40 5 perc, +`,
+		want:  []string{"2", "42"},
+	},
+	{
 		name:  "bitwise-xor",
 		input: `1 bin 3 ^`,
 		want:  []string{"0b00000010"},

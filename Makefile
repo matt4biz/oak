@@ -15,3 +15,4 @@ test:
 clean:
 	rm -f oak
 	rm -f $(GOPATH)/bin/oak
+	go clean -testcache

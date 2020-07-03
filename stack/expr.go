@@ -165,7 +165,7 @@ func UnaryBitwiseOp(op string, f func(x uint) uint) Expr {
 	}
 }
 
-var Degrees = func(m *Machine) error {
+func Degrees(m *Machine) error {
 	m.mode = degrees
 
 	if t := m.Top(); t != nil {
@@ -187,7 +187,7 @@ var Degrees = func(m *Machine) error {
 	return nil
 }
 
-var Radians = func(m *Machine) error {
+func Radians(m *Machine) error {
 	m.mode = radians
 
 	if t := m.Top(); t != nil {
@@ -209,6 +209,37 @@ var Radians = func(m *Machine) error {
 	return nil
 }
 
+func ArithmeticShift(y, x uint) uint {
+	if x >= 64 {
+		return 0
+	}
+
+	const high = 1 << 63
+	var mask uint
+
+	if y&high == high {
+		mask = ^uint(0) << (64 - x)
+	}
+
+	return y>>x | mask
+}
+
+func MaskLeft(x uint) uint {
+	if x >= 64 {
+		return ^uint(0)
+	}
+
+	return ^uint(0) << (64 - x)
+}
+
+func MaskRight(x uint) uint {
+	if x >= 64 {
+		return ^uint(0)
+	}
+
+	return ^uint(0) >> (64 - x)
+}
+
 var (
 	Add      = BinaryOp("add", func(y, x float64) float64 { return y + x })
 	Multiply = BinaryOp("mul", func(y, x float64) float64 { return y * x })
@@ -217,10 +248,14 @@ var (
 	Modulo   = BinaryOp("mod", func(y, x float64) float64 { return math.Mod(y, x) })
 	Power    = BinaryOp("pow", func(y, x float64) float64 { return math.Pow(y, x) })
 
+	And        = BinaryBitwiseOp("and", func(y, x uint) uint { return y & x })
+	Or         = BinaryBitwiseOp("or", func(y, x uint) uint { return y | x })
+	Xor        = BinaryBitwiseOp("xor", func(y, x uint) uint { return y ^ x })
+	LeftShift  = BinaryBitwiseOp("shl", func(y, x uint) uint { return y << x })
+	RightShift = BinaryBitwiseOp("shr", func(y, x uint) uint { return y >> x })
+	ArithShift = BinaryBitwiseOp("shr", ArithmeticShift)
+
 	Not = UnaryBitwiseOp("not", func(x uint) uint { return ^x })
-	And = BinaryBitwiseOp("and", func(y, x uint) uint { return y & x })
-	Or  = BinaryBitwiseOp("and", func(y, x uint) uint { return y | x })
-	Xor = BinaryBitwiseOp("and", func(y, x uint) uint { return y ^ x })
 )
 
 func Predefined(s string) Expr {
@@ -253,6 +288,10 @@ func Predefined(s string) Expr {
 		return UnaryOp(s, math.Log)
 	case "log":
 		return UnaryOp(s, math.Log10)
+	case "maskl":
+		return UnaryBitwiseOp(s, MaskLeft)
+	case "maskr":
+		return UnaryBitwiseOp(s, MaskRight)
 	case "max":
 		return BinaryOp(s, math.Max)
 	case "min":

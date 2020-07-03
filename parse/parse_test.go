@@ -143,6 +143,21 @@ var subTests = []subTest{
 		want:  []string{"0x0003", "0xfffffffffffffffc"},
 	},
 	{
+		name:  "shift-l",
+		input: `hex 0x1 3 <<`,
+		want:  []string{"0x0008"},
+	},
+	{
+		name:  "shift-r",
+		input: `hex 0x0100 3 >>`,
+		want:  []string{"0x0020"},
+	},
+	{
+		name:  "arith-shift-r",
+		input: `hex 0xf000000000000100 3 >>>`,
+		want:  []string{"0xfe00000000000020"},
+	},
+	{
 		name:  "bad-parse",
 		input: "x",
 		want:  []string{},

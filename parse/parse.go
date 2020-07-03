@@ -246,6 +246,12 @@ func (p *Parser) operator(s string) (stack.Expr, error) {
 		return stack.Or, nil
 	case "^":
 		return stack.Xor, nil
+	case "<<":
+		return stack.LeftShift, nil
+	case ">>":
+		return stack.RightShift, nil
+	case ">>>":
+		return stack.ArithShift, nil
 	}
 
 	return nil, errUnknown

@@ -92,6 +92,9 @@ func TestUnaryOp(t *testing.T) {
 		{name: "pow-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("pow")}, base: base16, want: "0x03e8"},
 
 		{name: "not-i-bin", xt: integer, x: uint(0b01101001), ops: []Expr{Not}, base: base02, want: "0b1111111111111111111111111111111111111111111111111111111110010110"},
+		{name: "maskl", xt: integer, x: uint(3), ops: []Expr{Predefined("maskl")}, base: base16, want: "0xe000000000000000"},
+		{name: "maskr", xt: integer, x: uint(6), ops: []Expr{Predefined("maskr")}, base: base16, want: "0x003f"},
+		{name: "mask65", xt: integer, x: uint(65), ops: []Expr{Predefined("maskr")}, base: base16, want: "0xffffffffffffffff"},
 	}
 
 	for _, tt := range table {
@@ -187,6 +190,10 @@ func TestBitwiseOp(t *testing.T) {
 		{name: "and", x: 0b01101001, y: 0b01010101, ops: []Expr{And}, want: "0b01000001"},
 		{name: "or", x: 0b01101001, y: 0b01010101, ops: []Expr{Or}, want: "0b01111101"},
 		{name: "xor", x: 0b01101001, y: 0b01010101, ops: []Expr{Xor}, want: "0b00111100"},
+
+		{name: "shl", x: 3, y: 0b01101001, ops: []Expr{LeftShift}, want: "0b1101001000"},
+		{name: "shr", x: 3, y: 0b01101001, ops: []Expr{RightShift}, want: "0b00001101"},
+		{name: "asr", x: 3, y: 0xf000000001101001, ops: []Expr{ArithShift}, want: "0b1111111000000000000000000000000000000000001000100000001000000000"},
 	}
 
 	for _, tt := range table {
@@ -200,15 +207,15 @@ func TestBitwiseOp(t *testing.T) {
 			r, err := m.Eval(0, tt.ops)
 
 			if err != nil {
-				t.Errorf("add: %v", err)
+				t.Errorf("%s: %v", tt.name, err)
 			}
 
 			if got, ok := r.(string); ok {
 				if got != tt.want {
-					t.Errorf("add: wanted %v, got %v", tt.want, got)
+					t.Errorf("%s: wanted %v, got %v", tt.name, tt.want, got)
 				}
 			} else {
-				t.Errorf("add: invalid result %v %[1]T", r)
+				t.Errorf("%s: invalid result %v %[1]T", tt.name, r)
 			}
 		})
 	}

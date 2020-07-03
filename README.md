@@ -236,12 +236,16 @@ oak offers the following floating-point binary operators:
 
 and these bitwise operations for unsigned integers:
 
-	&      {y,x} -> x = y&x   [bitwise and]
-	|      {y,x} -> x = y|x   [bitwise or]
-	^      {y,x} -> x = y^x   [bitwise xor]
-	~      {x}   -> x = !x    [bitwise not]
+	&      {y,x} -> x = y&x     [bitwise and]
+	|      {y,x} -> x = y|x     [bitwise or]
+	^      {y,x} -> x = y^x     [bitwise xor]
+	<<     {y,x} -> x = y<<x    [left shift]
+	>>     {y,x} -> x = y>>x    [logical right shift]
+	>>>    {y,x} -> x = y>>>x   [arithmetic right shift]
 
-along with the following unary functions, which replace the top of stack with a new value
+	~      {x}   -> x = !x      [bitwise not]
+
+along with the following floating-point unary functions, which replace the top of stack with a new value
 
 	abs    absolute value
 	chs    change sign
@@ -263,13 +267,18 @@ along with the following unary functions, which replace the top of stack with a 
 	tan    tangent
 	trunc  truncate
 
-and these binary functions
+and these floating-point binary functions
 
 	dist   {y,x} -> x = sqrt(x**2 + y**2)
 	dperc  {y,x} -> x = (x-y)/y * 100    [percent change from y to x]
 	max    {y,x} -> x = max(x,y)
 	min    {y,x} -> x = min(x,y)
 	perc   {y,x} -> x = y*x / 100        [x percent of y]
+
+and these bitwise unary functions
+
+	maskl  {x}   -> x = ^0 << (64-x), ^0 if x > 64  [left mask]
+	maskr  {x}   -> x = ^0 >> (64-x), ^0 if x > 64  [right mask]
 
 and these unary functions on user variables (e.g., `$a`)
 

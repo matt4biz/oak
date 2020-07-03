@@ -236,21 +236,24 @@ oak offers the following floating-point binary operators:
 
 and these bitwise operations for unsigned integers:
 
-	&      {y,x} -> x = y&x     [bitwise and]
-	|      {y,x} -> x = y|x     [bitwise or]
-	^      {y,x} -> x = y^x     [bitwise xor]
-	<<     {y,x} -> x = y<<x    [left shift]
-	>>     {y,x} -> x = y>>x    [logical right shift]
-	>>>    {y,x} -> x = y>>>x   [arithmetic right shift]
+	&      {y,x} -> x = y&x              [bitwise and]
+	|      {y,x} -> x = y|x              [bitwise or]
+	^      {y,x} -> x = y^x              [bitwise xor]
+	<<     {y,x} -> x = y<<x             [left shift]
+	>>     {y,x} -> x = y>>x             [logical right shift]
+	>>>    {y,x} -> x = y>>>x            [arithmetic right shift]
 
-	~      {x}   -> x = !x      [bitwise not]
+	~      {x}   -> x = !x               [bitwise not]
 
 along with the following floating-point unary functions, which replace the top of stack with a new value
 
 	abs    absolute value
-	chs    change sign
+	acos   arccos (inverse cos)
+	asin   arcsin (inverse sin)
+	atan   arctan (inverse tan)
 	cbrt   cube root (x ** 1/3)
 	ceil   ceiling
+	chs    change sign
 	cos    cosine
 	cube   cube (x ** 3)
 	exp    e ** x
@@ -402,6 +405,8 @@ For example,
 
 If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Exit with "bye" or type ctrl-D; the latter will not save any state.
 
+If the display or angular modes are set from the command line, these values override the options in `.oak.yml` (see below) or in any stored machine image loaded with `-i`.
+
 ## History
 The REPL stores up to 50 lines of command history in `$HOME/.oakhist` which is available to your next session (through the normal operations at the prompt, e.g., up-arrow).
 
@@ -442,10 +447,12 @@ is equivalent to `1 2, 3+, sqr`.
 
 Note that the commands in the `.oak.yml` file do not leave result variables or a "last x" value when the machine starts. There will be no output unless an error occurs, in which case the machine will print the error and quit.
 
+Also, certain command line options override the options set in the configuration file (see above).
+
 ## To do
 Here are a few possible enhancements:
 
-- add a few missing trig functions (e.g. acos, tanh)
+- add support for complex numbers and their functions (e.g, tanh)
 - vector operations
 - string functions (really?)
 - statistical functions, similar to the HP 11c

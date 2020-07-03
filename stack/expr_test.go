@@ -85,8 +85,29 @@ func TestUnaryOp(t *testing.T) {
 		base radix
 		want string
 	}{
-		{name: "log-f-dec", xt: floater, x: 100.0, ops: []Expr{Predefined("log")}, want: "2"},
-		{name: "pow-f-dec", xt: floater, x: 3.0, ops: []Expr{Predefined("pow")}, want: "1000"},
+		{name: "abs-f-dec", xt: floater, x: -3.0, ops: []Expr{Predefined("abs")}, want: "3.000"},
+		{name: "ceil-f-dec", xt: floater, x: 4.4, ops: []Expr{Predefined("ceil")}, want: "5.000"},
+		{name: "frac-f-dec", xt: floater, x: 4.4, ops: []Expr{Predefined("frac")}, want: "0.400"},
+		{name: "trunc-f-dec", xt: floater, x: 4.4, ops: []Expr{Predefined("trunc")}, want: "4.000"},
+		{name: "recp-f-dec", xt: floater, x: 4.0, ops: []Expr{Predefined("recp")}, want: "0.250"},
+
+		{name: "cbrt-f-dec", xt: floater, x: 27.0, ops: []Expr{Predefined("cbrt")}, want: "3.000"},
+		{name: "cube-f-dec", xt: floater, x: 2.0, ops: []Expr{Predefined("cube")}, want: "8.000"},
+		{name: "sqr-f-dec", xt: floater, x: 5.0, ops: []Expr{Predefined("sqr")}, want: "25.000"},
+		{name: "sqrt-f-dec", xt: floater, x: 4.0, ops: []Expr{Predefined("sqrt")}, want: "2.000"},
+
+		{name: "log-f-dec", xt: floater, x: 100.0, ops: []Expr{Predefined("log")}, want: "2.000"},
+		{name: "pow-f-dec", xt: floater, x: 3.0, ops: []Expr{Predefined("pow")}, want: "1000.000"},
+		{name: "ln-f-dec", xt: floater, x: 100.0, ops: []Expr{Predefined("ln")}, want: "4.605"},
+		{name: "ln1-f-dec", xt: floater, x: math.E, ops: []Expr{Predefined("ln")}, want: "1.000"},
+		{name: "exp-f-dec", xt: floater, x: 1.0, ops: []Expr{Predefined("exp")}, want: "2.718"},
+
+		{name: "sin-f-dec", xt: floater, x: 30.0, ops: []Expr{Predefined("sin")}, want: "0.500"},
+		{name: "cos-f-dec", xt: floater, x: 60.0, ops: []Expr{Predefined("cos")}, want: "0.500"},
+		{name: "tan-f-dec", xt: floater, x: 45.0, ops: []Expr{Predefined("tan")}, want: "1.000"},
+		{name: "acos-f-dec", xt: floater, x: 0.866025, ops: []Expr{Predefined("acos")}, want: "30.000"},
+		{name: "asin-f-dec", xt: floater, x: 0.5, ops: []Expr{Predefined("asin")}, want: "30.000"},
+		{name: "atan-f-dec", xt: floater, x: 1.0, ops: []Expr{Predefined("atan")}, want: "45.000"},
 
 		{name: "log-i-hex", xt: integer, x: uint(100), ops: []Expr{Predefined("log")}, base: base16, want: "0x0002"},
 		{name: "pow-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("pow")}, base: base16, want: "0x03e8"},
@@ -103,6 +124,9 @@ func TestUnaryOp(t *testing.T) {
 			x := Value{T: tt.xt, V: tt.x, m: m}
 
 			m.base = tt.base
+			m.digits = 3
+			m.disp = fixed
+
 			m.Push(x)
 
 			r, err := m.Eval(0, tt.ops)

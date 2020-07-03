@@ -119,6 +119,48 @@ func TrigonometryOp(op string, f func(float64) float64) Expr {
 	}
 }
 
+func InverseTrigOp(op string, f func(float64) float64) Expr {
+	return func(m *Machine) error {
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
+		x := m.PopX()
+
+		if x == nil {
+			return fmt.Errorf("%s: empty stack", op)
+		}
+
+		switch x.T {
+		case floater:
+			var s = x.V.(float64)
+
+			s = f(s)
+
+			if x.M == degrees {
+				s *= 180 / math.Pi
+			}
+
+			m.Push(m.makeFloatVal(s))
+			return nil
+
+		case integer:
+			var s = float64(x.V.(uint))
+
+			s = f(s)
+
+			if x.M == degrees {
+				s *= 180 / math.Pi
+			}
+
+			m.Push(m.makeFloatVal(s))
+			return nil
+		}
+
+		return fmt.Errorf("%s: invalid operand x=%#v", op, x.V)
+	}
+}
+
 func BinaryBitwiseOp(op string, f func(y, x uint) uint) Expr {
 	return func(m *Machine) error {
 		if len(m.stack) < 2 {
@@ -263,6 +305,12 @@ func Predefined(s string) Expr {
 	switch s {
 	case "abs":
 		return UnaryOp(s, math.Abs)
+	case "acos":
+		return InverseTrigOp(s, math.Acos)
+	case "asin":
+		return InverseTrigOp(s, math.Asin)
+	case "atan":
+		return InverseTrigOp(s, math.Atan)
 	case "cbrt":
 		return UnaryOp(s, math.Cbrt)
 	case "ceil":

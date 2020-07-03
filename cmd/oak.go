@@ -46,18 +46,6 @@ func main() {
 		return
 	}
 
-	if fixed > 0 {
-		machine.SetFixed(fixed)
-	} else if scip > 0 {
-		machine.SetScientific(scip)
-	} else if engr > 0 {
-		machine.SetEngineering(engr)
-	}
-
-	if radians {
-		machine.SetRadians()
-	}
-
 	home, err := os.UserHomeDir()
 
 	if err != nil {
@@ -75,6 +63,18 @@ func main() {
 			fmt.Fprintf(os.Stderr, "image: %s\n", err)
 			os.Exit(-1)
 		}
+	}
+
+	if fixed > 0 {
+		machine.SetFixed(fixed)
+	} else if scip > 0 {
+		machine.SetScientific(scip)
+	} else if engr > 0 {
+		machine.SetEngineering(engr)
+	}
+
+	if radians {
+		machine.SetRadians()
 	}
 
 	if input != "" {

@@ -118,6 +118,16 @@ var subTests = []subTest{
 		want:  []string{"3", "4"},
 	},
 	{
+		name:  "trig",
+		input: `3 fix 30 sin, 2 * atan, 15+ cos`,
+		want:  []string{"0.500", "45.000", "0.500"},
+	},
+	{
+		name:  "log",
+		input: `3 fix 100 log, exp`,
+		want:  []string{"2.000", "7.389"},
+	},
+	{
 		name:  "result-var",
 		input: `2 1 +, 3 $1 +`,
 		want:  []string{"3", "6"},

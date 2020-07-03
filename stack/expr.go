@@ -3,6 +3,7 @@ package stack
 import (
 	"fmt"
 	"math"
+	"math/bits"
 )
 
 func BinaryOp(op string, f func(float64, float64) float64) Expr {
@@ -298,6 +299,8 @@ func Predefined(s string) Expr {
 		return BinaryOp(s, math.Min)
 	case "perc":
 		return BinaryOp(s, func(y, x float64) float64 { return y * x / 100 })
+	case "popcnt":
+		return UnaryBitwiseOp(s, func(x uint) uint { return uint(bits.OnesCount(x)) })
 	case "pow":
 		return UnaryOp(s, func(x float64) float64 { return math.Pow(10, x) })
 	case "rad":

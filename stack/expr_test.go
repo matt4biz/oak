@@ -95,6 +95,7 @@ func TestUnaryOp(t *testing.T) {
 		{name: "maskl", xt: integer, x: uint(3), ops: []Expr{Predefined("maskl")}, base: base16, want: "0xe000000000000000"},
 		{name: "maskr", xt: integer, x: uint(6), ops: []Expr{Predefined("maskr")}, base: base16, want: "0x003f"},
 		{name: "mask65", xt: integer, x: uint(65), ops: []Expr{Predefined("maskr")}, base: base16, want: "0xffffffffffffffff"},
+		{name: "popcnt", xt: integer, x: uint(65535), ops: []Expr{Predefined("popcnt")}, base: base16, want: "0x0010"},
 	}
 
 	for _, tt := range table {

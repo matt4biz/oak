@@ -279,6 +279,7 @@ and these bitwise unary functions
 
 	maskl  {x}   -> x = ^0 << (64-x), ^0 if x > 64  [left mask]
 	maskr  {x}   -> x = ^0 >> (64-x), ^0 if x > 64  [right mask]
+	popcnt {x}   -> x = population count of x (# of 1 bits)
 
 and these unary functions on user variables (e.g., `$a`)
 

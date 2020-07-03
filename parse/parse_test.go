@@ -98,6 +98,21 @@ var subTests = []subTest{
 		want:  []string{"0.500"},
 	},
 	{
+		name:  "modulo",
+		input: `3 4 *, 2/, 5%`,
+		want:  []string{"12", "6", "1"},
+	},
+	{
+		name:  "pow-log",
+		input: `3 pow, log`,
+		want:  []string{"1000", "3"},
+	},
+	{
+		name:  "power-op-log",
+		input: `10 3 **, log`,
+		want:  []string{"1000", "3"},
+	},
+	{
 		name:  "last-x",
 		input: `2 1 +, 3 $0 +`,
 		want:  []string{"3", "4"},
@@ -111,6 +126,21 @@ var subTests = []subTest{
 		name:  "user-var",
 		input: `2 1 +, 3 $name !, $name@+`,
 		want:  []string{"3", "3", "6"},
+	},
+	{
+		name:  "bitwise-xor",
+		input: `1 bin 3 ^`,
+		want:  []string{"0b00000010"},
+	},
+	{
+		name:  "bitwise-and",
+		input: `1 bin 3 &`,
+		want:  []string{"0b00000001"},
+	},
+	{
+		name:  "bitwise-or-not",
+		input: `1 hex 3|,~`,
+		want:  []string{"0x0003", "0xfffffffffffffffc"},
 	},
 	{
 		name:  "bad-parse",

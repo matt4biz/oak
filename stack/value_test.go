@@ -131,12 +131,12 @@ func TestPlacesBinary(t *testing.T) {
 		r int
 	}{
 		{7, 8},
-		{257, 16},
-		{65537, 24},
+		{257, 9},
+		{65537, 17},
 	}
 
 	for _, tt := range table {
-		r := places(tt.i, 8, 8)
+		r := places(tt.i, 1, 8, 64)
 
 		if r != tt.r {
 			t.Errorf("%d: wanted %d, got %d", tt.i, tt.r, r)
@@ -155,7 +155,7 @@ func TestPlacesOctal(t *testing.T) {
 	}
 
 	for _, tt := range table {
-		r := places(tt.i, 3, 9)
+		r := places(tt.i, 3, 3, 24)
 
 		if r != tt.r {
 			t.Errorf("%d: wanted %d, got %d", tt.i, tt.r, r)
@@ -170,11 +170,11 @@ func TestPlacesHexadecimal(t *testing.T) {
 	}{
 		{7, 4},
 		{257, 4},
-		{65537, 8},
+		{65537, 5},
 	}
 
 	for _, tt := range table {
-		r := places(tt.i, 4, 16)
+		r := places(tt.i, 4, 4, 16)
 
 		if r != tt.r {
 			t.Errorf("%d: wanted %d, got %d", tt.i, tt.r, r)
@@ -193,11 +193,11 @@ func TestValueBinaryInt(t *testing.T) {
 		{1, base02, "0b00000001"},
 		{5, base02, "0b00000101"},
 		{255, base02, "0b11111111"},
-		{256, base02, "0b0000000100000000"},
-		{4096, base02, "0b0001000000000000"},
-		{4097, base02, "0b0001000000000001"},
+		{256, base02, "0b100000000"},
+		{4096, base02, "0b1000000000000"},
+		{4097, base02, "0b1000000000001"},
 		{65535, base02, "0b1111111111111111"},
-		{65537, base02, "0b000000010000000000000001"},
+		{65537, base02, "0b10000000000000001"},
 
 		{1, base08, "001"},
 		{7, base08, "007"},
@@ -211,9 +211,11 @@ func TestValueBinaryInt(t *testing.T) {
 		{1, base16, "0x0001"},
 		{7, base16, "0x0007"},
 		{255, base16, "0x00ff"},
-		{256, base16, "0x00000100"},
-		{65535, base16, "0x0000ffff"},
-		{65537, base16, "0x000000010001"},
+		{256, base16, "0x0100"},
+		{65535, base16, "0xffff"},
+		{65537, base16, "0x10001"},
+		{1193046, base16, "0x123456"},
+		{4886718345, base16, "0x123456789"},
 	}
 
 	for _, tt := range table {

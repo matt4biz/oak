@@ -108,11 +108,11 @@ func (v Value) String() string {
 
 		switch v.m.base {
 		case base02:
-			return fmt.Sprintf("%#0*b", places(i, 8, 8), i)
+			return fmt.Sprintf("%#0*b", places(i, 1, 8, 64), i)
 		case base08:
-			return fmt.Sprintf("%#0*o", places(i, 3, 9), i)
+			return fmt.Sprintf("%#0*o", places(i, 3, 3, 24), i)
 		case base16:
-			return fmt.Sprintf("%#0*x", places(i, 4, 8), i)
+			return fmt.Sprintf("%#0*x", places(i, 4, 4, 16), i)
 		default:
 			return strconv.Itoa(int(v.V.(uint)))
 		}
@@ -130,20 +130,22 @@ func (v Value) String() string {
 	return "<nil>"
 }
 
-func places(i uint, group int, min int) int {
-	s := 0 // space for sign
-
+func places(i uint, group, min, max int) int {
 	n := bits.Len(i)
 
-	if n == 0 {
-		return min
-	}
+	r := n / group
 
-	r := n / min
-
-	if n%min != 0 {
+	if n%group != 0 {
 		r += 1
 	}
 
-	return s + (r * group)
+	if r < min {
+		return min
+	}
+
+	if r > max {
+		return max
+	}
+
+	return r
 }

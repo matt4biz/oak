@@ -41,10 +41,10 @@ func TestBinaryOp(t *testing.T) {
 		{name: "sub-f-i-oct", xt: floater, yt: integer, x: 2.0, y: uint(3), ops: []Expr{Subtract}, base: base08, want: "001"},
 		{name: "sub-i-i-oct", xt: integer, yt: integer, x: uint(2), y: uint(3), ops: []Expr{Subtract}, base: base08, want: "001"},
 
-		{name: "sub-f-f-oct-neg", xt: floater, yt: floater, x: 3.0, y: 2.0, ops: []Expr{Subtract}, base: base08, want: "001777777777777777777777"},
-		{name: "sub-i-f-oct-neg", xt: integer, yt: floater, x: uint(3), y: 2.0, ops: []Expr{Subtract}, base: base08, want: "001777777777777777777777"},
-		{name: "sub-f-i-oct-neg", xt: floater, yt: integer, x: 3.0, y: uint(2), ops: []Expr{Subtract}, base: base08, want: "001777777777777777777777"},
-		{name: "sub-i-i-oct-neg", xt: integer, yt: integer, x: uint(3), y: uint(2), ops: []Expr{Subtract}, base: base08, want: "001777777777777777777777"},
+		{name: "sub-f-f-oct-neg", xt: floater, yt: floater, x: 3.0, y: 2.0, ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
+		{name: "sub-i-f-oct-neg", xt: integer, yt: floater, x: uint(3), y: 2.0, ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
+		{name: "sub-f-i-oct-neg", xt: floater, yt: integer, x: 3.0, y: uint(2), ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
+		{name: "sub-i-i-oct-neg", xt: integer, yt: integer, x: uint(3), y: uint(2), ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
 	}
 
 	for _, tt := range table {
@@ -89,7 +89,7 @@ func TestUnaryOp(t *testing.T) {
 		{name: "pow-f-dec", xt: floater, x: 3.0, ops: []Expr{Predefined("pow")}, want: "1000"},
 
 		{name: "log-i-hex", xt: integer, x: uint(100), ops: []Expr{Predefined("log")}, base: base16, want: "0x0002"},
-		{name: "pow-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("pow")}, base: base16, want: "0x000003e8"},
+		{name: "pow-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("pow")}, base: base16, want: "0x03e8"},
 
 		{name: "not-i-bin", xt: integer, x: uint(0b01101001), ops: []Expr{Not}, base: base02, want: "0b1111111111111111111111111111111111111111111111111111111110010110"},
 	}

@@ -63,20 +63,29 @@ Decimal numbers (when the base is 10, which is the default) are evaluated as 64-
 	1.1e+3
 	1e-3
 
-When the base is set to an integer mode (binary, octal, hexadecimal) numbers are evaluated as unsigned integers and may be written with 0[bB] or 0[xX] prefixes if desired, e.g.
+When the base is set to an integer mode (binary, octal, hexadecimal) numbers are evaluated as unsigned integers (up to 64 bits) and may be written with 0[bB] or 0[xX] prefixes if desired, e.g.
 
-	0b1101
+	0b10010001
 	0177
 	0x283e
 	101
 
 Note that integers without a leading 0 will be interpreted as base 10 integer values. See more below.
 
-A number is always pushed onto the top of the stack.
+A number is always pushed onto the top of the stack immediately.
+
+### Strings
+A few commands take a string argument (e.g., mode), entered with double qoutes; these values are immediately pushed onto the stack. For example,
+
+	> "rad" mode
+	1: <nil>
+	> 0.524 sin
+	2: 0.500
+
+TODO - consider operations on strings as data
 
 ### Display
-
-There are three explicit display modes:
+There are three explicit display modes for floating-point values:
 
 - fixed point
 - scientific notation
@@ -101,8 +110,18 @@ For example:
 	6: 0.333e+03
 
 ### Modes
-By default, trigonometry functions evaluate their arguments in degrees; the mode may be changed to radians (see "mode" below).
 
+#### Angular mode
+By default, trigonometry functions evaluate their arguments in degrees; the mode may be changed to radians (see "mode" and the degree/radians conversion operators below). For example,
+
+	> 30 sin
+	1: 0.500
+	> 30 rad
+	2: 0.524
+	> sin
+	3: 0.500
+
+#### Base (radix)
 By default, the calculator operates in base-10 floating point mode, but may be changed to an integer mode (see "base" below). 
 
 Changing the base to binary, octal, or hexadecimal has these effects:
@@ -204,7 +223,7 @@ Variables have two forms
 		> $name@+
 		4: 8
 
-### Operations
+## Operations
 
 oak offers the following floating-point binary operators:
 
@@ -316,7 +335,7 @@ There is also a single punctuation mark, where the comma (`,`) is used to separa
 
 The backtick (`` ` ``) is used to start a comment that extends to the end of the line. (TBD: maybe use the single quote `'`, and allow backticks to mark a raw string.)
 
-### Saved state
+## Saved state
 If you save the state of the machine with "save", that state includes
 
 - the stack
@@ -324,7 +343,9 @@ If you save the state of the machine with "save", that state includes
 - all user-defined variables, but not result variables
 - all user-defined words (when we have that capability)
 
-### User-defined functions (words)
+Loading state with "load" overwrites all existing machine state except result variables.
+
+## User-defined functions (words)
 TODO: allow the creation of user-defined words (a la Forth), for example
 
 	: name op op ... ;
@@ -336,10 +357,10 @@ Also, it will not be possible to allow result vars (`$1`, etc.) to be
 used in words; we'll need to store the elements as tokens to allow
 the state to be written out / loaded back in.
 
-### Functions on strings
+## Functions on strings
 TODO
 
-### Vector operations
+## Vector operations
 TODO
 
 ## Command-line options
@@ -371,9 +392,10 @@ For example,
 
 If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Exit with "bye" or type ctrl-D; the latter will not save any state.
 
-The REPL stores up to 50 lines of command history in `$HOME/.oakhist` which is available to your next session.
+## History
+The REPL stores up to 50 lines of command history in `$HOME/.oakhist` which is available to your next session (through the normal operations at the prompt, e.g., up-arrow).
 
-## Configuration
+## Startup configuration
 The machine will read the file `$HOME/.oakrc` if it is present and run those commands before starting to accept user input.
 
 For example, if the `.oakrc` file has
@@ -390,10 +412,13 @@ the the REPL will display the new status before the first input line:
 
 Note that the commands in the `.oakrc` file do not leave result variables or a "last x" value.
 
+TODO - fix the RC file so it has both options and commands sections (or use YAML or JSON, e.g., `.oak.yml`).
+
 ## To do
 Here are a few possible enhancements:
 
 - add a few missing trig functions (e.g. acos, tanh)
+- fix the RC file so it has sections (or use YAML)
 - vector operations
 - string functions (really?)
 - statistical functions, similar to the HP 11c

@@ -59,7 +59,7 @@ func lexAny(l *Scanner) stateFn {
 		l.emit(Semicolon)
 		return lexAny
 
-	case r == '`':
+	case r == '#':
 		return lexComment
 
 	case isSpace(r):

@@ -42,11 +42,13 @@ func New(m *stack.Machine, s *scan.Scanner, w io.Writer, line int, debug bool) *
 // there's a comma or newline, it will emit a NOP as a placeholder, so
 // we only expect an empty list when we've run out of input to parse.
 // This requires the scanner to return tokens for newline or comma.
-func (p *Parser) Line() ([]stack.Expr, error) {
+func (p *Parser) Line() ([]stack.Expr, string, error) {
 	p.base = p.machine.Base()
 
-	if !p.readTokensToNewline() {
-		return nil, nil
+	s, ok := p.readTokensToNewline()
+
+	if !ok {
+		return nil, "", nil
 	}
 
 	if len(p.tokens) > 0 {
@@ -56,7 +58,9 @@ func (p *Parser) Line() ([]stack.Expr, error) {
 		p.line++
 	}
 
-	return p.evaluate()
+	e, err := p.evaluate()
+
+	return e, s, err
 }
 
 // readTokensToNewline clears the token buffer and fills it
@@ -65,7 +69,7 @@ func (p *Parser) Line() ([]stack.Expr, error) {
 // are tokens left in the buffer, and false when not. Note
 // that newline/comma tokens are explicitly added to the
 // token buffer, not absorbed.
-func (p *Parser) readTokensToNewline() bool {
+func (p *Parser) readTokensToNewline() (string, bool) {
 	p.tokens = p.buff[:0]
 
 	for {
@@ -77,10 +81,10 @@ func (p *Parser) readTokensToNewline() bool {
 
 		case scan.Newline, scan.Comma:
 			p.tokens = append(p.tokens, tok)
-			return true
+			return p.scanner.Line(), true
 
 		case scan.EOF:
-			return len(p.tokens) > 0
+			return p.scanner.Line(), len(p.tokens) > 0
 		}
 
 		p.tokens = append(p.tokens, tok)

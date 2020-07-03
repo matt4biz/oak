@@ -1,0 +1,28 @@
+# push two numbers, sum
+2 2 +
+# do it again
+1 2+
+# now add the two results
++
+# multiply by 3
+3 *
+# subtract 5
+5 -
+# take the square root
+sqrt
+# and get the remainder (mod) by 3
+3 %
+# multiple operations stack up = (1+2)*3
+3 2 1 + *
+# take y to the power x
+2 **
+# re-use a result from above
+$1 +
+# clear the stack
+clrall
+# start anew
+1 2 +
+# reuse the last x value (2)
+$0+
+# we're done for now
+bye

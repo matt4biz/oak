@@ -225,7 +225,9 @@ logic (optional -- maybe this is too much)
                              i.e., else, then, if on stack
 
     #       :word <number/variable> #
-	
+
+	NOPE - we're going to take # as the comment-to-EOL-mark
+
 	// will execute the word that number of times
 	
     // can we have iteration with #

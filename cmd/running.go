@@ -50,7 +50,8 @@ func fromReadline(home string) {
 		b := bytes.NewBufferString(line)
 		s := scan.New(c, pname, b)
 		p := parse.New(machine, s, os.Stdout, il, debug)
-		e, _ := p.Line()
+
+		e, _, _ := p.Line()
 
 		if i, err := machine.Eval(il, e); err != nil {
 			fmt.Println(err)
@@ -62,9 +63,20 @@ func fromReadline(home string) {
 	}
 }
 
+func fromFile(fn string, demo bool) {
+	f, err := os.Open(fn)
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(-1)
+	}
+
+	fromInput(os.Stdout, f, demo)
+}
+
 // from Input processes a file or string from
 // the command line, parsing the whole thing
-func fromInput(w io.Writer, r io.ReadCloser) (erred bool) {
+func fromInput(w io.Writer, r io.ReadCloser, demo bool) (erred bool) {
 	defer r.Close()
 
 	c := scan.Config{}
@@ -73,7 +85,7 @@ func fromInput(w io.Writer, r io.ReadCloser) (erred bool) {
 	il := 1
 
 	for {
-		e, err := p.Line()
+		e, s, err := p.Line()
 
 		if err != nil {
 			erred = true
@@ -81,6 +93,10 @@ func fromInput(w io.Writer, r io.ReadCloser) (erred bool) {
 
 		if len(e) == 0 {
 			break
+		}
+
+		if demo {
+			fmt.Println(">", strings.TrimRight(s, "\n"))
 		}
 
 		if i, err := machine.Eval(il, e); err != nil {
@@ -134,7 +150,7 @@ func readConfig(home string) error {
 
 	machine.SetOptions(c.Options)
 
-	if erred := fromInput(&b, r); erred {
+	if erred := fromInput(&b, r, false); erred {
 		fmt.Fprintln(os.Stderr, b.String())
 		return fmt.Errorf("error parsing .oak.yml")
 	}

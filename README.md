@@ -10,7 +10,19 @@ oak exists because
 oak borrows a little from all these and Forth as well.
 
 ## Installation
-TBD
+Run
+
+	go get github.com/matt4biz/oak/cmd/oak
+
+### Makefile
+If you build from the Makefile, the following targets are defined:
+
+	- oak          make and install the binary
+	- lint         run golangci-lint (must be installed)
+	- test         run go test -v -cover
+	- demo         make oak and run the demo
+	- demo-test    run the demo, compare to expected output
+	- clean        clean up build/test stuff
 
 ## Usage
 oak simulates a classic stack-based RPN calculator [RPN -- reverse Polish notation -- is also known as postfix notation]. 
@@ -346,7 +358,7 @@ and finally these constants
 There is also a single punctuation mark, where the comma (`,`) is used to separate lines of input (e.g., when using the
  `-e` option, below).
 
-The backtick (`` ` ``) is used to start a comment that extends to the end of the line. (TBD: maybe use the single quote `'`, and allow backticks to mark a raw string.)
+The pound sign (``#``) is used to start a comment that extends to the end of the line.
 
 ## Saved state
 If you save the state of the machine with "save", that state includes
@@ -392,6 +404,8 @@ oak has only a few options
 
 	-rad        start in radians mode for trigonometry
 	-debug      show how the line parses for debugging
+	-demo       run in demo mode, only works with -f
+	            (print each input line before the output)
 
 For example,
 
@@ -406,6 +420,8 @@ For example,
 If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Exit with "bye" or type ctrl-D; the latter will not save any state.
 
 If the display or angular modes are set from the command line, these values override the options in `.oak.yml` (see below) or in any stored machine image loaded with `-i`.
+
+Demo mode ignores all command line options except `-f` (which must be set) as well as any local configuration in `.oak.yml`.
 
 ## History
 The REPL stores up to 50 lines of command history in `$HOME/.oakhist` which is available to your next session (through the normal operations at the prompt, e.g., up-arrow).

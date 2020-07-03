@@ -26,6 +26,7 @@ func main() {
 		fixed   uint
 		scip    uint
 		engr    uint
+		demo    bool
 		radians bool
 		show    bool
 	)
@@ -38,11 +39,22 @@ func main() {
 	flag.UintVar(&engr, "eng", 0, "engineering mode")
 	flag.BoolVar(&radians, "rad", false, "use radians mode")
 	flag.BoolVar(&debug, "debug", false, "show parsing")
+	flag.BoolVar(&demo, "demo", false, "run in demo mode")
 	flag.BoolVar(&show, "version", false, "show version")
 	flag.Parse()
 
 	if show {
 		fmt.Fprintln(os.Stderr, "version", version)
+		return
+	}
+
+	if demo {
+		if fn == "" {
+			fmt.Fprintln(os.Stderr, "no demo file")
+			os.Exit(-1)
+		}
+
+		fromFile(fn, true)
 		return
 	}
 
@@ -78,16 +90,9 @@ func main() {
 	}
 
 	if input != "" {
-		fromInput(os.Stdout, ioutil.NopCloser(bytes.NewBufferString(input)))
+		fromInput(os.Stdout, ioutil.NopCloser(bytes.NewBufferString(input)), false)
 	} else if fn != "" {
-		f, err := os.Open(fn)
-
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(-1)
-		}
-
-		fromInput(os.Stdout, f)
+		fromFile(fn, false)
 	} else {
 		fromReadline(home)
 	}

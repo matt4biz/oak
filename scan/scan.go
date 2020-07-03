@@ -110,6 +110,10 @@ func (l *Scanner) Next() Token {
 	return Token{EOF, l.pos, "EOF"}
 }
 
+func (l *Scanner) Line() string {
+	return l.input
+}
+
 func (t Type) String() string {
 	switch t {
 	case EOF:

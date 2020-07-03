@@ -30,7 +30,7 @@ func (st subTest) run(t *testing.T) {
 
 	var i int
 
-	for got, _ := p.Line(); len(got) > 0 && got[0] != nil; got, _ = p.Line() {
+	for got, _, _ := p.Line(); len(got) > 0 && got[0] != nil; got, _, _ = p.Line() {
 		top, err := m.Eval(i+1, got)
 
 		if err != nil {
@@ -54,7 +54,7 @@ func (st subTest) run(t *testing.T) {
 var subTests = []subTest{
 	{
 		name:  "simple-add",
-		input: "2 1 + `comment hex",
+		input: "2 1 + # comment hex",
 		want:  []string{"3"},
 	},
 	{

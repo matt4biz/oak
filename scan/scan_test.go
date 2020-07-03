@@ -31,7 +31,7 @@ func (st subTest) run(t *testing.T) {
 var subTests = []subTest{
 	{
 		name:  "simple-add",
-		input: "2 -1 + `comment",
+		input: "2 -1 + # comment",
 		want: []Token{
 			{Number, 1, "2"},
 			{Number, 1, "-1"},

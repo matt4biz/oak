@@ -5,13 +5,16 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 
 	"oak/parse"
 	"oak/scan"
 
 	"github.com/chzyer/readline"
+	"gopkg.in/yaml.v3"
 )
 
 // from Readline runs the REPL and
@@ -93,13 +96,16 @@ func fromInput(w io.Writer, r io.ReadCloser) (erred bool) {
 	return
 }
 
-// readRuncom takes in the .oakrc file and
+type config struct {
+	Options  map[string]string
+	Commands []string
+}
+
+// readConfig takes in the .oak.yml file and
 // processes it silently (unless there's an
 // error, in which case it prints to stderr)
-func readRuncom(home string) error {
-	var b bytes.Buffer
-
-	file, err := os.Open(path.Join(home, ".oakrc"))
+func readConfig(home string) error {
+	file, err := os.Open(path.Join(home, ".oak.yml"))
 
 	// it's OK if the file isn't even there;
 	// we just won't process it
@@ -114,9 +120,23 @@ func readRuncom(home string) error {
 
 	defer file.Close()
 
-	if erred := fromInput(&b, file); erred {
-		fmt.Fprint(os.Stderr, "parsing .oakrc: ", b.String())
-		return fmt.Errorf("parse error")
+	var b bytes.Buffer
+	var c config
+
+	err = yaml.NewDecoder(file).Decode(&c)
+
+	if err != nil {
+		return err
+	}
+
+	s := strings.Join(c.Commands, ", ")
+	r := ioutil.NopCloser(bytes.NewBufferString(s))
+
+	machine.SetOptions(c.Options)
+
+	if erred := fromInput(&b, r); erred {
+		fmt.Fprintln(os.Stderr, b.String())
+		return fmt.Errorf("error parsing .oak.yml")
 	}
 
 	return nil

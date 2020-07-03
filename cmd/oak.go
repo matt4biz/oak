@@ -65,7 +65,8 @@ func main() {
 		os.Exit(-2)
 	}
 
-	if err := readRuncom(home); err != nil {
+	if err := readConfig(home); err != nil {
+		fmt.Fprintf(os.Stderr, "config: %s\n", err)
 		os.Exit(-1)
 	}
 

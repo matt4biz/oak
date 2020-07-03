@@ -406,29 +406,46 @@ If neither `-e` nor `-f` is present (the former takes precedence), oak starts an
 The REPL stores up to 50 lines of command history in `$HOME/.oakhist` which is available to your next session (through the normal operations at the prompt, e.g., up-arrow).
 
 ## Startup configuration
-The machine will read the file `$HOME/.oakrc` if it is present and run those commands before starting to accept user input.
+The machine will read the file `$HOME/.oak.yml` if it is present. The file may have both options and commands. For example,
 
-For example, if the `.oakrc` file has
+	options:
+	  trig_mode: "rad"
+	  display_mode: fix
+	  digits: 3
+	commands:
+	  - status 
 
-	"rad" mode
-	3 fix
-	status
-
-the the REPL will display the new status before the first input line:
+then the REPL will display the new status before the first input line:
 
 	$ oak
 	base: 10 mode: rad display: fix/3
 	>
 
-Note that the commands in the `.oakrc` file do not leave result variables or a "last x" value.
+The possible options are
 
-TODO - fix the RC file so it has both options and commands sections (or use YAML or JSON, e.g., `.oak.yml`).
+	trig_mode        "deg" or "rad"
+	display_mode     "free", "fix", "sci", "eng"
+	base             10, 2, 8, 16
+	digits           2, 0+
+
+where the first value is the default in each case.
+
+The list of commands is joined with "," and processed as a unit.
+Thus
+
+	commands:
+	  - 1 2
+	  - 3+
+	  - sqr
+
+is equivalent to `1 2, 3+, sqr`.
+
+Note that the commands in the `.oak.yml` file do not leave result variables or a "last x" value when the machine starts. There will be no output unless an error occurs, in which case the machine will print the error and quit.
 
 ## To do
 Here are a few possible enhancements:
 
 - add a few missing trig functions (e.g. acos, tanh)
-- fix the RC file so it has sections (or use YAML)
 - vector operations
 - string functions (really?)
 - statistical functions, similar to the HP 11c

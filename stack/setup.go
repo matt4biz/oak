@@ -257,14 +257,8 @@ func (m *Machine) SetBuiltins() {
 		}
 
 		if x.T == stringer {
-			switch x.V.(string) {
-			case "deg":
-				m.mode = degrees
-				return nil
-			case "rad":
-				m.mode = radians
-				return nil
-			}
+			m.setMode(x.V.(string))
+			return nil
 		}
 
 		return fmt.Errorf("mode: invalid operand %#v", x.V)

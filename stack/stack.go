@@ -2,6 +2,7 @@ package stack
 
 import (
 	"fmt"
+	"strconv"
 )
 
 type (
@@ -72,8 +73,9 @@ type Expr func(m *Machine) error
 // stack.
 func New() *Machine {
 	m := Machine{
-		vars:  make(map[string]*Symbol, 1024),
-		words: make(map[string]*Word),
+		digits: 2,
+		vars:   make(map[string]*Symbol, 1024),
+		words:  make(map[string]*Word),
 	}
 
 	m.SetBuiltins()
@@ -133,6 +135,7 @@ func (m *Machine) Mode() string {
 	if m.mode == degrees {
 		return "deg"
 	}
+
 	return "rad"
 }
 
@@ -147,6 +150,26 @@ func (m *Machine) Display() string {
 	}
 
 	return "free"
+}
+
+func (m *Machine) SetOptions(o map[string]string) {
+	if mode, ok := o["trig_mode"]; ok {
+		m.setMode(mode)
+	}
+
+	if base, ok := o["base"]; ok {
+		m.setBase(base)
+	}
+
+	if digits, ok := o["digits"]; ok {
+		if d, err := strconv.Atoi(digits); err == nil {
+			m.digits = uint(d)
+		}
+	}
+
+	if display, ok := o["display_mode"]; ok {
+		m.setDisplay(display)
+	}
 }
 
 func Show(m *Machine) error {
@@ -199,6 +222,43 @@ func (m *Machine) makeIntVal(i uint) Value {
 
 func (m *Machine) makeStringVal(s string) Value {
 	return Value{T: stringer, V: trimQuotes(s), m: m}
+}
+
+func (m *Machine) setMode(s string) {
+	switch s {
+	case "deg":
+		m.mode = degrees
+	case "rad":
+		m.mode = radians
+	}
+}
+
+func (m *Machine) setBase(s string) {
+	if base, err := strconv.Atoi(s); err == nil {
+		switch base {
+		case 2:
+			m.base = base02
+		case 8:
+			m.base = base08
+		case 16:
+			m.base = base16
+		default:
+			m.base = base10
+		}
+	}
+}
+
+func (m *Machine) setDisplay(s string) {
+	switch s {
+	case "fix":
+		m.disp = fixed
+	case "sci":
+		m.disp = scientific
+	case "eng":
+		m.disp = engineering
+	default:
+		m.disp = free
+	}
 }
 
 func trimQuotes(s string) string {

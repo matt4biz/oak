@@ -258,6 +258,136 @@ func UnaryBitwiseOp(op string, f func(x uint) uint) Expr {
 	}
 }
 
+func StatsOp(m *Machine) error {
+	l := len(m.stack)
+
+	switch {
+	case l > 1:
+		x := m.stack[l-1]
+		y := m.stack[l-2]
+
+		if x.T != floater || y.T != floater {
+			return fmt.Errorf("invalid operands y=%#v, x=%#v", y.V, x.V)
+		}
+
+		m.x = x
+		m.SumXY(x, y)
+
+		n := *m.stats[sumn] // must copy value
+		m.stack[l-1] = &n
+
+		return nil
+
+	case l == 1:
+		x := m.stack[l-1]
+
+		if x.T != floater {
+			return fmt.Errorf("invalid operand x=%#v", x.V)
+		}
+
+		m.x = x
+
+		m.SumX(x)
+
+		n := *m.stats[sumn] // must copy value
+		m.stack[l-1] = &n
+
+		return nil
+	}
+
+	return errUnderflow
+}
+
+func Average(m *Machine) error {
+	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+		return errNoStats
+	}
+
+	n := m.stats[sumn].V.(float64)
+	xs := m.stats[xsum].V.(float64)
+	ys := m.stats[ysum].V.(float64)
+
+	m.Push(m.makeFloatVal(ys / n))
+	m.Push(m.makeFloatVal(xs / n))
+
+	return nil
+}
+
+func StdDeviation(m *Machine) error {
+	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+		return errNoStats
+	}
+
+	n := m.stats[sumn].V.(float64)
+	xs := m.stats[xsum].V.(float64)
+	ys := m.stats[ysum].V.(float64)
+	xsq := m.stats[xsqsum].V.(float64)
+	ysq := m.stats[ysqsum].V.(float64)
+
+	sdx := math.Sqrt((n*xsq - xs*xs) / (n * (n - 1)))
+	sdy := math.Sqrt((n*ysq - ys*ys) / (n * (n - 1)))
+
+	m.Push(m.makeFloatVal(sdy))
+	m.Push(m.makeFloatVal(sdx))
+
+	return nil
+}
+
+func LinRegression(m *Machine) error {
+	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+		return errNoStats
+	}
+
+	n := m.stats[sumn].V.(float64)
+	xs := m.stats[xsum].V.(float64)
+	ys := m.stats[ysum].V.(float64)
+	xsq := m.stats[xsqsum].V.(float64)
+	xys := m.stats[xyprod].V.(float64)
+
+	b := (xys - (xs*ys)/n) / (xsq - (xs*xs)/n)
+	a := (ys - b*xs) / n
+
+	m.Push(m.makeFloatVal(b))
+	m.Push(m.makeFloatVal(a))
+
+	return nil
+}
+
+func LinEstimate(m *Machine) error {
+	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+		return errNoStats
+	}
+
+	if len(m.stack) < 1 {
+		return errUnderflow
+	}
+
+	x := m.PopX()
+
+	if x.T != floater {
+		return fmt.Errorf("invalid operand %#v", x.V)
+	}
+
+	xf := x.V.(float64)
+
+	n := m.stats[sumn].V.(float64)
+	xs := m.stats[xsum].V.(float64)
+	ys := m.stats[ysum].V.(float64)
+	xsq := m.stats[xsqsum].V.(float64)
+	ysq := m.stats[ysqsum].V.(float64)
+	xys := m.stats[xyprod].V.(float64)
+
+	b := (xys - (xs*ys)/n) / (xsq - (xs*xs)/n)
+	a := (ys - b*xs) / n
+	y := b*xf + a
+	r := (xys - (xs*ys)/n) / math.Sqrt((xsq-(xs*xs)/n)*(ysq-(ys*ys)/n))
+
+	m.Push(m.makeFloatVal(r))
+	m.Push(m.makeFloatVal(y))
+
+	return nil
+}
+
 func Degrees(m *Machine) error {
 	m.mode = degrees
 

@@ -75,6 +75,7 @@ func (m *Machine) SetBuiltins() {
 		m.stack = nil
 		m.vars = make(map[string]*Symbol)
 		m.x = nil
+		m.stats = nil
 		return nil
 	}
 
@@ -88,6 +89,7 @@ func (m *Machine) SetBuiltins() {
 		//   when are defined, e.g. for statistics
 
 		m.x = nil
+		m.stats = nil
 		return nil
 	}
 
@@ -343,8 +345,21 @@ func (m *Machine) SetBuiltins() {
 	m.builtin["save"] = Save
 	m.builtin["load"] = Load
 
+	m.builtin["sum"] = StatsOp
+	m.builtin["mean"] = Average
+	m.builtin["sdev"] = StdDeviation
+	m.builtin["line"] = LinRegression
+	m.builtin["estm"] = LinEstimate
+
 	m.builtin["dump"] = func(m *Machine) error {
 		fmt.Println("DUMP ========")
+
+		if m.stats != nil {
+			fmt.Printf("STAT: %s\n", m.stats)
+		} else {
+			fmt.Printf("STAT: <nil>\n")
+
+		}
 		if m.x != nil {
 			fmt.Printf("LAST: %s\n", *m.x)
 		} else {

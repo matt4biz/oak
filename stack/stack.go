@@ -10,6 +10,7 @@ type (
 	mode    uint
 	radix   uint
 	display uint
+	sreg    uint
 )
 
 const (
@@ -39,6 +40,16 @@ const (
 	engineering
 )
 
+const (
+	sumn sreg = iota
+	xsum
+	ysum
+	xsqsum
+	ysqsum
+	xyprod
+	nsreg // total number
+)
+
 // Machine represents a stack-based computational engine
 // where all operations take items from the stack and/or
 // push items onto the stack. It has a "last x" side
@@ -47,6 +58,7 @@ const (
 type Machine struct {
 	stack   []*Value
 	x       *Value
+	stats   []*Value
 	vars    map[string]*Symbol
 	words   map[string]*Word
 	builtin map[string]Expr
@@ -198,6 +210,16 @@ func String(s string) Expr {
 	return func(m *Machine) error {
 		m.Push(m.makeStringVal(s))
 		return nil
+	}
+}
+
+func (m *Machine) initStats() {
+	zero := m.makeFloatVal(0.0)
+	m.stats = make([]*Value, nsreg)
+
+	for i := 0; i < int(nsreg); i++ {
+		z := zero
+		m.stats[i] = &z
 	}
 }
 

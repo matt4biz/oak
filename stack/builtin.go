@@ -7,6 +7,7 @@ import (
 
 var (
 	errUnderflow = errors.New("stack underflow")
+	errNoStats   = errors.New("stats empty")
 )
 
 func Nop(m *Machine) error {
@@ -135,6 +136,34 @@ func (m *Machine) Roll() {
 
 		m.stack = append(tmp, m.stack[0:l-1]...)
 	}
+}
+
+func (m *Machine) SumXY(x, y *Value) {
+	if m.stats == nil || m.stats[sumn] == nil {
+		m.initStats()
+	}
+
+	xf := x.V.(float64)
+	yf := y.V.(float64)
+
+	m.stats[sumn].V = m.stats[sumn].V.(float64) + 1
+	m.stats[xsum].V = m.stats[xsum].V.(float64) + xf
+	m.stats[xsqsum].V = m.stats[xsqsum].V.(float64) + (xf * xf)
+	m.stats[ysum].V = m.stats[ysum].V.(float64) + yf
+	m.stats[ysqsum].V = m.stats[ysqsum].V.(float64) + (yf * yf)
+	m.stats[xyprod].V = m.stats[xyprod].V.(float64) + (xf * yf)
+}
+
+func (m *Machine) SumX(x *Value) {
+	if m.stats == nil || m.stats[sumn] == nil {
+		m.initStats()
+	}
+
+	xf := x.V.(float64)
+
+	m.stats[sumn].V = m.stats[sumn].V.(float64) + 1
+	m.stats[xsum].V = m.stats[xsum].V.(float64) + xf
+	m.stats[xsqsum].V = m.stats[xsqsum].V.(float64) + (xf * xf)
 }
 
 func (m *Machine) SetFixed(d uint) {

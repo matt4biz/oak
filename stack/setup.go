@@ -81,6 +81,7 @@ func (m *Machine) SetBuiltins() {
 
 	m.builtin["clrstk"] = func(m *Machine) error {
 		m.stack = nil
+		m.stats = nil
 		return nil
 	}
 

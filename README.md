@@ -292,6 +292,15 @@ and these floating-point binary functions (some save the _y_ register)
 	min    {y,x} -> x = min(x,y)
 	perc   {y,x} -> y=y, x = y*x / 100     [x percent of y]
 
+and these statistics functions
+
+	sum    {y,x} -> y=y, x = count of data points
+	
+	mean   push y = mean(y), x = mean(x)
+	sdev   push y = stdev(y), x = stdev(x) [sample std dev]
+	line   push y = slope, x = intercept
+	estm   {x} -> push y = corr coefficient, x = estimated y
+
 and these bitwise unary functions
 
 	maskl  {x}   -> x = ^0 << (64-x), ^0 if x > 64  [left mask]
@@ -387,6 +396,76 @@ Also, it will not be possible to allow result vars (`$1`, etc.) to be
 used in words; we'll need to store the elements as tokens to allow
 the state to be written out / loaded back in.
 
+## Statistics operations
+oak can calculate basic statistics on one or two variables, as well as perform linear regression and calculate the correlation coefficient.
+
+The `sum` command is used to enter data points one at a time (or one pair of y,x values). Each invocation of `sum` leaves _n_ (the number of data points) in the _x_ register and _y_ unchanged.
+
+Given some number of data points, `mean` calculates the mean (average) and `sdev` the _sample_ standard deviation.
+
+Given some number of data points in two variables, `line` calculates the linear regression _y = ax+b_, leaving the intercept _b_ in the _x_ register and the slope _a_ in the _y_ register.
+
+Given some number of data points in two variables, `estm` calculates an estimated _y_ value for a given _x_, leaving the estimated _y_ in the x register, and the correlation coefficient _r_ in the _y_ register (yes, we know it's confusing :-).
+
+The functions `mean`, `sdev`, `line`, and `estm` push new {y,x} pairs onto the stack (older data on the stack is pushed underneath). Note that of these functions only `estm` takes a value from the stack (the input _x_ value).
+
+For example, given the following problem
+
+| N, kg/hectare (x) | Yield, tons (y) |
+| ----------------- | --------------- |
+| 0                 | 4.6             |
+| 20                | 5.78            |
+| 40                | 6.61            |
+| 60                | 7.21            |
+| 70                | 7.78            |
+
+we enter it as
+
+	> 4.63 0 sum
+	1: 1.00
+	> 5.78 20 sum
+	2: 2.00
+	> 6.61 40 sum
+	3: 3.00
+	> 7.21 60 sum
+	4: 4.00
+	> 7.78 80 sum
+	5: 5.00
+
+from which we may calculate
+
+	> mean
+	6: 40.00
+	> swap
+	7: 6.40
+	> sdev
+	8: 31.62
+	> swap
+	9: 1.24
+
+with means for {x,y} of 40 and 6.48, respectively, and standard deviations of 31.62 and 1.24.
+
+For linear regression we may calculate
+
+
+	> line
+	10: 4.86
+	> swap
+	11: 0.04
+	> 70 estm
+	12: 7.56
+	> swap
+	13: 0.99
+
+
+giving us _y = 0.04x + 4.86_ as the line, and an estimated _y_ of 7.56 given a new value _x = 70_, with a correlation coefficient of _r = 0.99_.
+
+Using any of these statistics functions without having entered any data points will yield an error.
+
+The statistics are calculated from separate statistics registers which are cleared by `clrreg`, `clrstk`, or `clrall` (using `clrstk` is recommended before entering data points to avoid picking up any old data from the stack).
+
+TODO - make the register contents visible somehow
+
 ## Functions on strings
 TODO
 
@@ -476,7 +555,6 @@ Here are a few possible enhancements:
 - add support for complex numbers and their functions (e.g, tanh)
 - vector operations
 - string functions (really?)
-- statistical functions, similar to the HP 11c
 - interest-rate calculations, similar to the HP 12c
 - user-defined words (a la Forth), along with logic & iteration
 - oh, and we need a circular slide rule mode of operation, too ;-)

@@ -247,6 +247,9 @@ oak offers the following floating-point binary operators:
 	/      {y,x} -> x = y/x
 	%      {y,x} -> x = y mod x
 	**     {y,x} -> x = y to the power x
+	
+	∑+     {y,x} -> y=y, x=n++           [add stats data point]
+	∑-     {y,x} -> y=y, x=n--           [delete stats data point]
 
 and these bitwise operations for unsigned integers:
 
@@ -294,13 +297,16 @@ and these floating-point binary functions (some save the _y_ register)
 
 and these statistics functions
 
-	sum    {y,x} -> y=y, x = count of data points
+	sum    {y,x} -> y=y, x=n++  [n = # of data pts, same as ∑+]
 	
 	mean   push y = mean(y), x = mean(x)
 	sdev   push y = stdev(y), x = stdev(x) [sample std dev]
 	line   push y = slope, x = intercept
 
 	estm   {x}   -> push y = corr coefficient, x = estimated y
+	
+	comb   {y,x} -> x = combinations of y items x at a time
+	perm   {y,x} -> x = permutations of y items x at a time
 
 and these bitwise unary functions
 
@@ -402,6 +408,8 @@ oak can calculate basic statistics on one or two variables, as well as perform l
 
 The `sum` command is used to enter data points one at a time (or one pair of y,x values). Each invocation of `sum` leaves _n_ (the number of data points) in the _x_ register and _y_ unchanged.
 
+As an alternative, you can use the operators `∑+` (`sum`) and `∑-` (where the latter removes a data point; there is no similar named function).
+
 Given some number of data points, `mean` calculates the mean (average) and `sdev` the _sample_ standard deviation.
 
 Given some number of data points in two variables, `line` calculates the linear regression _y = ax+b_, leaving the intercept _b_ in the _x_ register and the slope _a_ in the _y_ register.
@@ -465,7 +473,16 @@ Using any of these statistics functions without having entered any data points w
 
 The statistics are calculated from separate statistics registers which are cleared by `clrreg`, `clrstk`, or `clrall` (using `clrstk` is recommended before entering data points to avoid picking up any old data from the stack).
 
-TODO - make the register contents visible somehow
+The statitics registers used to sum these variables may be accessed as variables (using these register names for historical reasons):
+
+	$r_2   n (count of data points)
+	$r_3   ∑ x
+	$r_4   ∑ x**2
+	$r_5   ∑ y
+	$r_6   ∑ y**2
+	$r_7   ∑ xy
+
+These special variables only exist when the statistic registers have data. They are read-only, so they can be read with `@` but not written with `!`.
 
 ## Functions on strings
 TODO

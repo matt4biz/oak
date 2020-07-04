@@ -138,6 +138,12 @@ func (l *Scanner) isOperator(r rune) bool {
 		}
 		l.next()
 
+	case '∑':
+		switch l.peek() {
+		case '+', '-':
+			l.next()
+		}
+
 	case '\\':
 		switch l.peek() {
 		case '+', '*':

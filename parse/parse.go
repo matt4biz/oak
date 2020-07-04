@@ -256,6 +256,10 @@ func (p *Parser) operator(s string) (stack.Expr, error) {
 		return stack.RightShift, nil
 	case ">>>":
 		return stack.ArithShift, nil
+	case "∑+":
+		return stack.StatsOpAdd, nil
+	case "∑-":
+		return stack.StatsOpRm, nil
 	}
 
 	return nil, errUnknown

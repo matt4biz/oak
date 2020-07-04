@@ -224,6 +224,17 @@ func (m *Machine) initStats() {
 	for i := 0; i < int(nsreg); i++ {
 		z := zero
 		m.stats[i] = &z
+
+		s := m.makeSymbol(fmt.Sprintf("$r_%d", i+2), m.stats[i])
+		m.vars[s.S] = s
+	}
+}
+
+func (m *Machine) clearStats() {
+	m.stats = nil
+
+	for i := 0; i < int(nsreg); i++ {
+		delete(m.vars, fmt.Sprintf("r_%d", i+2))
 	}
 }
 
@@ -248,6 +259,10 @@ func (m *Machine) makeIntVal(i uint) Value {
 
 func (m *Machine) makeStringVal(s string) Value {
 	return Value{T: stringer, V: trimQuotes(s), m: m}
+}
+
+func (m *Machine) makeSymbol(s string, v *Value) *Symbol {
+	return &Symbol{S: s, V: v, readonly: true}
 }
 
 func (m *Machine) setMode(s string) {

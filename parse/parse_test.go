@@ -148,8 +148,13 @@ var subTests = []subTest{
 		want:  []string{"1.00", "2.00", "3.00", "4.00", "5.00", "40.00", "6.40"},
 	},
 	{
+		name:  "stats-one-var",
+		input: `2 fix 4.63 sum, 5.78 sum, 6.61 sum, 7.21 sum, 7.78 sum, mean`,
+		want:  []string{"1.00", "2.00", "3.00", "4.00", "5.00", "6.40"},
+	},
+	{
 		name:  "stats-sdev",
-		input: `2 fix 4.63 0 sum, 5.78 20 sum, 6.61 40 sum, 7.21 60 sum, 7.78 80 sum, sdev, swap`,
+		input: `2 fix 4.63 0 ∑+, 5.78 20 ∑+, 6.61 40 ∑+, 7.21 60 ∑+, 7.78 80 ∑+, sdev, swap`,
 		want:  []string{"1.00", "2.00", "3.00", "4.00", "5.00", "31.62", "1.24"},
 	},
 	{
@@ -161,6 +166,11 @@ var subTests = []subTest{
 		name:  "stats-estm",
 		input: `2 fix 4.63 0 sum, 5.78 20 sum, 6.61 40 sum, 7.21 60 sum, 7.78 80 sum, 70 estm, swap`,
 		want:  []string{"1.00", "2.00", "3.00", "4.00", "5.00", "7.56", "0.99"},
+	},
+	{
+		name:  "stats-correction",
+		input: `2 fix 4.63 0 ∑+, 4.78 20 ∑+, 6.61 40 ∑+, 7.21 60 ∑+, 7.78 80 ∑+, 4.78 20 ∑-, 5.78 20 ∑+, mean, swap`,
+		want:  []string{"1.00", "2.00", "3.00", "4.00", "5.00", "4.00", "5.00", "40.00", "6.40"},
 	},
 	{
 		name:  "bitwise-xor",

@@ -50,6 +50,9 @@ func TestBinaryOp(t *testing.T) {
 		{name: "dist", xt: floater, yt: floater, x: 3.0, y: 4.0, ops: []Expr{Predefined("dist")}, want: "5"},
 		{name: "perc", xt: floater, yt: floater, x: 30.0, y: 4.0, ops: []Expr{Predefined("perc")}, want: "1.2"},
 		{name: "dperc", xt: floater, yt: floater, x: 5.0, y: 4.0, ops: []Expr{Predefined("dperc")}, want: "25"},
+
+		{name: "perm", xt: floater, yt: floater, x: 3.0, y: 5.0, ops: []Expr{Predefined("perm")}, want: "60"},
+		{name: "comb", xt: floater, yt: floater, x: 3.0, y: 5.0, ops: []Expr{Predefined("comb")}, want: "10"},
 	}
 
 	for _, tt := range table {
@@ -251,12 +254,18 @@ func TestBitwiseOp(t *testing.T) {
 }
 
 func TestStatsOp(t *testing.T) {
-	data := []struct{ x, y float64 }{
-		{0, 4.63},
-		{20, 5.78},
-		{40, 6.61},
-		{60, 7.21},
-		{80, 7.78},
+	data := []struct {
+		op   Expr
+		x, y float64
+		n    int
+	}{
+		{StatsOpAdd, 0, 4.63, 1},
+		{StatsOpAdd, 20, 4.78, 2},
+		{StatsOpAdd, 40, 6.61, 3},
+		{StatsOpAdd, 60, 7.21, 4},
+		{StatsOpAdd, 80, 7.78, 5},
+		{StatsOpRm, 20, 4.78, 4},
+		{StatsOpAdd, 20, 5.78, 5},
 	}
 
 	m := New()
@@ -264,15 +273,15 @@ func TestStatsOp(t *testing.T) {
 	m.setDisplay("fix")
 	m.digits = 2
 
-	for i, d := range data {
-		s, err := m.Eval(0, []Expr{Number(d.y), Number(d.x), StatsOp})
+	for _, d := range data {
+		s, err := m.Eval(0, []Expr{Number(d.y), Number(d.x), d.op})
 
 		if err != nil {
 			t.Fatalf("entering stats: %s", err)
 		}
 
-		if j, _ := strconv.ParseFloat(s.(string), 64); int(j) != i+1 {
-			t.Fatalf("invalid data point %d, want %d", int(j), i+1)
+		if j, _ := strconv.ParseFloat(s.(string), 64); int(j) != d.n {
+			t.Fatalf("invalid data point %d, want %d", int(j), d.n)
 		}
 	}
 

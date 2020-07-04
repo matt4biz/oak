@@ -4,13 +4,18 @@ import "fmt"
 
 // Symbol represents a variable
 type Symbol struct {
-	S      string `json:"symbol"`
-	V      *Value `json:"value"`
-	result bool
+	S        string `json:"symbol"`
+	V        *Value `json:"value"`
+	result   bool
+	readonly bool
 }
 
 func (s Symbol) String() string {
-	return fmt.Sprintf("{S:%s, V:%#v", s.S, *s.V)
+	if s.V == nil {
+		return fmt.Sprintf("{S:%s, V:<nil> rslt=%t, read=%t}", s.S, s.result, s.readonly)
+	}
+
+	return fmt.Sprintf("{S:%s, V:%#v rslt=%t, read=%t}", s.S, *s.V, s.result, s.readonly)
 }
 
 // Lookup takes a variable name and returns the symbol
@@ -92,7 +97,7 @@ func (m *Machine) RecallVar(s *Symbol) (*Value, error) {
 		return v.V, nil
 	}
 
-	return nil, fmt.Errorf("%s undefined", s)
+	return nil, fmt.Errorf("%s undefined", s.S)
 }
 
 // Store takes a value {y} and a symbol {x} from
@@ -122,6 +127,13 @@ func Store(m *Machine) error {
 
 	if !ok {
 		return fmt.Errorf("store: invalid symbol %#v", v.V)
+	}
+
+	// the symbol we get isn't the original, so look it up;
+	// it's only read-only if it already exists and is marked
+
+	if m.vars[u.S] != nil && m.vars[u.S].readonly {
+		return fmt.Errorf("store: readonly variable")
 	}
 
 	m.StoreVar(u, *v)

@@ -154,6 +154,22 @@ func (m *Machine) SumXY(x, y *Value) {
 	m.stats[xyprod].V = m.stats[xyprod].V.(float64) + (xf * yf)
 }
 
+func (m *Machine) RemoveXY(x, y *Value) {
+	if m.stats == nil || m.stats[sumn] == nil {
+		return
+	}
+
+	xf := x.V.(float64)
+	yf := y.V.(float64)
+
+	m.stats[sumn].V = m.stats[sumn].V.(float64) - 1
+	m.stats[xsum].V = m.stats[xsum].V.(float64) - xf
+	m.stats[xsqsum].V = m.stats[xsqsum].V.(float64) - (xf * xf)
+	m.stats[ysum].V = m.stats[ysum].V.(float64) - yf
+	m.stats[ysqsum].V = m.stats[ysqsum].V.(float64) - (yf * yf)
+	m.stats[xyprod].V = m.stats[xyprod].V.(float64) - (xf * yf)
+}
+
 func (m *Machine) SumX(x *Value) {
 	if m.stats == nil || m.stats[sumn] == nil {
 		m.initStats()
@@ -164,6 +180,18 @@ func (m *Machine) SumX(x *Value) {
 	m.stats[sumn].V = m.stats[sumn].V.(float64) + 1
 	m.stats[xsum].V = m.stats[xsum].V.(float64) + xf
 	m.stats[xsqsum].V = m.stats[xsqsum].V.(float64) + (xf * xf)
+}
+
+func (m *Machine) RemoveX(x *Value) {
+	if m.stats == nil || m.stats[sumn] == nil {
+		return
+	}
+
+	xf := x.V.(float64)
+
+	m.stats[sumn].V = m.stats[sumn].V.(float64) - 1
+	m.stats[xsum].V = m.stats[xsum].V.(float64) - xf
+	m.stats[xsqsum].V = m.stats[xsqsum].V.(float64) - (xf * xf)
 }
 
 func (m *Machine) SetFixed(d uint) {

@@ -258,7 +258,7 @@ func UnaryBitwiseOp(op string, f func(x uint) uint) Expr {
 	}
 }
 
-func StatsOp(m *Machine) error {
+func StatsOpAdd(m *Machine) error {
 	l := len(m.stack)
 
 	switch {
@@ -288,6 +288,46 @@ func StatsOp(m *Machine) error {
 		m.x = x
 
 		m.SumX(x)
+
+		n := *m.stats[sumn] // must copy value
+		m.stack[l-1] = &n
+
+		return nil
+	}
+
+	return errUnderflow
+}
+
+func StatsOpRm(m *Machine) error {
+	l := len(m.stack)
+
+	switch {
+	case l > 1:
+		x := m.stack[l-1]
+		y := m.stack[l-2]
+
+		if x.T != floater || y.T != floater {
+			return fmt.Errorf("invalid operands y=%#v, x=%#v", y.V, x.V)
+		}
+
+		m.x = x
+		m.RemoveXY(x, y)
+
+		n := *m.stats[sumn] // must copy value
+		m.stack[l-1] = &n
+
+		return nil
+
+	case l == 1:
+		x := m.stack[l-1]
+
+		if x.T != floater {
+			return fmt.Errorf("invalid operand x=%#v", x.V)
+		}
+
+		m.x = x
+
+		m.RemoveX(x)
 
 		n := *m.stats[sumn] // must copy value
 		m.stack[l-1] = &n
@@ -463,6 +503,14 @@ func MaskRight(x uint) uint {
 	return ^uint(0) >> (64 - x)
 }
 
+func Permutation(y, x float64) float64 {
+	return math.Gamma(y+1) / math.Gamma(y-x+1)
+}
+
+func Combination(y, x float64) float64 {
+	return math.Gamma(y+1) / (math.Gamma(x+1) * math.Gamma(y-x+1))
+}
+
 var (
 	Add      = BinaryOp("add", func(y, x float64) float64 { return y + x })
 	Multiply = BinaryOp("mul", func(y, x float64) float64 { return y * x })
@@ -495,6 +543,8 @@ func Predefined(s string) Expr {
 		return UnaryOp(s, math.Cbrt)
 	case "ceil":
 		return UnaryOp(s, math.Ceil)
+	case "comb":
+		return BinaryOp(s, Combination)
 	case "cos":
 		return TrigonometryOp(s, math.Cos)
 	case "cube":
@@ -527,6 +577,8 @@ func Predefined(s string) Expr {
 		return BinaryOp(s, math.Min)
 	case "perc":
 		return BinarySaveOp(s, func(y, x float64) float64 { return y * x / 100 })
+	case "perm":
+		return BinaryOp(s, Permutation)
 	case "popcnt":
 		return UnaryBitwiseOp(s, func(x uint) uint { return uint(bits.OnesCount(x)) })
 	case "pow":

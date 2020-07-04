@@ -75,13 +75,13 @@ func (m *Machine) SetBuiltins() {
 		m.stack = nil
 		m.vars = make(map[string]*Symbol)
 		m.x = nil
-		m.stats = nil
+		m.clearStats()
 		return nil
 	}
 
 	m.builtin["clrstk"] = func(m *Machine) error {
 		m.stack = nil
-		m.stats = nil
+		m.clearStats()
 		return nil
 	}
 
@@ -90,7 +90,7 @@ func (m *Machine) SetBuiltins() {
 		//   when are defined, e.g. for statistics
 
 		m.x = nil
-		m.stats = nil
+		m.clearStats()
 		return nil
 	}
 
@@ -346,7 +346,7 @@ func (m *Machine) SetBuiltins() {
 	m.builtin["save"] = Save
 	m.builtin["load"] = Load
 
-	m.builtin["sum"] = StatsOp
+	m.builtin["sum"] = StatsOpAdd
 	m.builtin["mean"] = Average
 	m.builtin["sdev"] = StdDeviation
 	m.builtin["line"] = LinRegression

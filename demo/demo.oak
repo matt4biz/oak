@@ -26,5 +26,24 @@ clrall
 $0+
 # calculate a percentage
 40 5 perc +
-# we're done for now
+# add some data points for statistics
+2 fix
+4.63  0 sum
+5.78 20 sum
+6.61 40 sum
+7.21 60 sum
+7.78 80 sum
+# get the average {x, y}
+mean
+swap
+# get the std deviation {x, y}
+sdev
+swap
+# compute the line y=ax+b {b,a}
+line
+swap
+# estimate a new value y, corr coeff r
+70 estm
+swap
+# and we're done for now
 bye

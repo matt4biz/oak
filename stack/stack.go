@@ -109,6 +109,10 @@ func (m *Machine) SetDebugging() {
 // errors, only values (possibly nil, stack unchanged)
 func (m *Machine) Eval(line int, exprs []Expr) (interface{}, error) {
 	for _, e := range exprs {
+		if e == nil {
+			return nil, fmt.Errorf("found nil expression")
+		}
+
 		if err := e(m); err != nil {
 			return nil, err
 		}

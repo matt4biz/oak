@@ -2,6 +2,7 @@ package stack
 
 import (
 	"math"
+	"strconv"
 	"testing"
 )
 
@@ -45,6 +46,10 @@ func TestBinaryOp(t *testing.T) {
 		{name: "sub-i-f-oct-neg", xt: integer, yt: floater, x: uint(3), y: 2.0, ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
 		{name: "sub-f-i-oct-neg", xt: floater, yt: integer, x: 3.0, y: uint(2), ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
 		{name: "sub-i-i-oct-neg", xt: integer, yt: integer, x: uint(3), y: uint(2), ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
+
+		{name: "dist", xt: floater, yt: floater, x: 3.0, y: 4.0, ops: []Expr{Predefined("dist")}, want: "5"},
+		{name: "perc", xt: floater, yt: floater, x: 30.0, y: 4.0, ops: []Expr{Predefined("perc")}, want: "1.2"},
+		{name: "dperc", xt: floater, yt: floater, x: 5.0, y: 4.0, ops: []Expr{Predefined("dperc")}, want: "25"},
 	}
 
 	for _, tt := range table {
@@ -60,15 +65,15 @@ func TestBinaryOp(t *testing.T) {
 			r, err := m.Eval(0, tt.ops)
 
 			if err != nil {
-				t.Errorf("add: %v", err)
+				t.Errorf("%s: %v", tt.name, err)
 			}
 
 			if got, ok := r.(string); ok {
 				if got != tt.want {
-					t.Errorf("add: wanted %v, got %v", tt.want, got)
+					t.Errorf("%s: wanted %v, got %v", tt.name, tt.want, got)
 				}
 			} else {
-				t.Errorf("add: invalid result %v %[1]T", r)
+				t.Errorf("%s: invalid result %v %[1]T", tt.name, r)
 			}
 		})
 	}
@@ -90,6 +95,7 @@ func TestUnaryOp(t *testing.T) {
 		{name: "frac-f-dec", xt: floater, x: 4.4, ops: []Expr{Predefined("frac")}, want: "0.400"},
 		{name: "trunc-f-dec", xt: floater, x: 4.4, ops: []Expr{Predefined("trunc")}, want: "4.000"},
 		{name: "recp-f-dec", xt: floater, x: 4.0, ops: []Expr{Predefined("recp")}, want: "0.250"},
+		{name: "fact-f-dec", xt: floater, x: 4.0, ops: []Expr{Predefined("fact")}, want: "24.000"},
 
 		{name: "cbrt-f-dec", xt: floater, x: 27.0, ops: []Expr{Predefined("cbrt")}, want: "3.000"},
 		{name: "cube-f-dec", xt: floater, x: 2.0, ops: []Expr{Predefined("cube")}, want: "8.000"},
@@ -101,13 +107,6 @@ func TestUnaryOp(t *testing.T) {
 		{name: "ln-f-dec", xt: floater, x: 100.0, ops: []Expr{Predefined("ln")}, want: "4.605"},
 		{name: "ln1-f-dec", xt: floater, x: math.E, ops: []Expr{Predefined("ln")}, want: "1.000"},
 		{name: "exp-f-dec", xt: floater, x: 1.0, ops: []Expr{Predefined("exp")}, want: "2.718"},
-
-		{name: "sin-f-dec", xt: floater, x: 30.0, ops: []Expr{Predefined("sin")}, want: "0.500"},
-		{name: "cos-f-dec", xt: floater, x: 60.0, ops: []Expr{Predefined("cos")}, want: "0.500"},
-		{name: "tan-f-dec", xt: floater, x: 45.0, ops: []Expr{Predefined("tan")}, want: "1.000"},
-		{name: "acos-f-dec", xt: floater, x: 0.866025, ops: []Expr{Predefined("acos")}, want: "30.000"},
-		{name: "asin-f-dec", xt: floater, x: 0.5, ops: []Expr{Predefined("asin")}, want: "30.000"},
-		{name: "atan-f-dec", xt: floater, x: 1.0, ops: []Expr{Predefined("atan")}, want: "45.000"},
 
 		{name: "log-i-hex", xt: integer, x: uint(100), ops: []Expr{Predefined("log")}, base: base16, want: "0x0002"},
 		{name: "pow-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("pow")}, base: base16, want: "0x03e8"},
@@ -164,6 +163,11 @@ func TestTrigonometryOp(t *testing.T) {
 	}{
 		{name: "sin-f-deg", xt: floater, x: 30.0, ops: []Expr{Predefined("sin")}, want: "0.500"},
 		{name: "cos-f-deg", xt: floater, x: 30.0, ops: []Expr{Predefined("cos")}, want: "0.866"},
+		{name: "tan-f-deg", xt: floater, x: 45.0, ops: []Expr{Predefined("tan")}, want: "1.000"},
+
+		{name: "asin-f-deg", xt: floater, x: 0.5, ops: []Expr{Predefined("asin")}, want: "30.000"},
+		{name: "acos-f-deg", xt: floater, x: 0.5, ops: []Expr{Predefined("acos")}, want: "60.000"},
+		{name: "atan-f-deg", xt: floater, x: 1.0, ops: []Expr{Predefined("atan")}, want: "45.000"},
 
 		{name: "tan-i-oct", xt: integer, x: uint(45), ops: []Expr{Predefined("tan")}, base: base08, want: "001"},
 
@@ -243,5 +247,82 @@ func TestBitwiseOp(t *testing.T) {
 				t.Errorf("%s: invalid result %v %[1]T", tt.name, r)
 			}
 		})
+	}
+}
+
+func TestStatsOp(t *testing.T) {
+	data := []struct{ x, y float64 }{
+		{0, 4.63},
+		{20, 5.78},
+		{40, 6.61},
+		{60, 7.21},
+		{80, 7.78},
+	}
+
+	m := New()
+
+	m.setDisplay("fix")
+	m.digits = 2
+
+	for i, d := range data {
+		s, err := m.Eval(0, []Expr{Number(d.y), Number(d.x), StatsOp})
+
+		if err != nil {
+			t.Fatalf("entering stats: %s", err)
+		}
+
+		if j, _ := strconv.ParseFloat(s.(string), 64); int(j) != i+1 {
+			t.Fatalf("invalid data point %d, want %d", int(j), i+1)
+		}
+	}
+
+	s, err := m.Eval(0, []Expr{Average})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if ave, ok := s.(string); !ok || ave != "40.00" {
+		t.Errorf("incorrect ave: %v", s)
+	}
+
+	s, err = m.Eval(0, []Expr{StdDeviation})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if sd, ok := s.(string); !ok || sd != "31.62" {
+		t.Errorf("incorrect ave: %v", s)
+	}
+
+	s, err = m.Eval(0, []Expr{LinRegression})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if lr, ok := s.(string); !ok || lr != "4.86" {
+		t.Errorf("incorrect ave: %v", s)
+	}
+
+	s, err = m.Eval(0, []Expr{Number(70.0), LinEstimate})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if ey, ok := s.(string); !ok || ey != "7.56" {
+		t.Errorf("incorrect ave: %v", s)
+	}
+
+	clr, _ := m.Builtin("clrall")
+
+	if _, err = m.Eval(0, []Expr{clr}); err != nil {
+		t.Fatalf("can't clear stats: %s", err)
+	}
+
+	if _, err = m.Eval(0, []Expr{Average}); err != errNoStats {
+		t.Fatalf("invalid err %v, expected no stats", err)
 	}
 }

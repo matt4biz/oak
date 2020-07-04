@@ -47,7 +47,7 @@ For example
 
 	> 4 sqrt
 	1: 2
-	> $0 +   `where $0 in this case is 4
+	> $0 +   # where $0 in this case is 4
 	2: 6
 
 Note that the result of the previous calculation remains on top of the stack, e.g.,
@@ -155,7 +155,7 @@ If the base was changed by a conversion command ("bin", "oct", or "hex"):
 For example
 
     $ oak
-    > oct 127   `could have been "127 oct" also
+    > oct 127   # could have been "127 oct" also
     1: 0177
     > 234
     2: 0352
@@ -299,7 +299,8 @@ and these statistics functions
 	mean   push y = mean(y), x = mean(x)
 	sdev   push y = stdev(y), x = stdev(x) [sample std dev]
 	line   push y = slope, x = intercept
-	estm   {x} -> push y = corr coefficient, x = estimated y
+
+	estm   {x}   -> push y = corr coefficient, x = estimated y
 
 and these bitwise unary functions
 
@@ -421,7 +422,7 @@ For example, given the following problem
 
 we enter it as
 
-	> 4.63 0 sum
+	> 4.63  0 sum
 	1: 1.00
 	> 5.78 20 sum
 	2: 2.00

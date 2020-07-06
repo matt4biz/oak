@@ -1,4 +1,4 @@
-package stack
+package oak
 
 import (
 	"io/ioutil"
@@ -15,7 +15,7 @@ func TestSaveLoad(t *testing.T) {
 
 	defer os.Remove(file.Name())
 
-	m1 := New()
+	m1 := New(os.Stdout)
 
 	_, err = m1.Eval(1, []Expr{Number(3), Number(2), Number(1), Add})
 
@@ -31,7 +31,7 @@ func TestSaveLoad(t *testing.T) {
 		t.Fatalf("save: %s", err)
 	}
 
-	m2 := New()
+	m2 := New(os.Stdout)
 
 	if _, err = m2.Eval(1, []Expr{String(file.Name()), Load}); err != nil {
 		t.Fatalf("load: %s", err)

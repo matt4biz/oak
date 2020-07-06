@@ -1,26 +1,24 @@
-package parse
+package oak
 
 import (
 	"bytes"
-	"oak/scan"
-	"oak/stack"
 	"os"
 	"testing"
 )
 
-type subTest struct {
+type parseTest struct {
 	name  string
 	input string
 	want  []string // one for each line
 }
 
-func (st subTest) run(t *testing.T) {
+func (st parseTest) run(t *testing.T) {
 	b := bytes.NewBufferString(st.input)
-	c := scan.Config{}
-	s := scan.New(c, st.name, b)
+	c := ScanConfig{}
+	s := NewScanner(c, st.name, b)
 
-	m := stack.New()
-	p := New(m, s, os.Stderr, 1, true)
+	m := New(os.Stdout)
+	p := NewParser(m, s, os.Stderr, 1, true)
 
 	// we can't actually compare the parser's output directly
 	// because it's a list of closures, which can't be tested
@@ -51,7 +49,7 @@ func (st subTest) run(t *testing.T) {
 	}
 }
 
-var subTests = []subTest{
+var parseTests = []parseTest{
 	{
 		name:  "simple-add",
 		input: "2 1 + # comment hex",
@@ -210,7 +208,7 @@ var subTests = []subTest{
 }
 
 func TestParser(t *testing.T) {
-	for _, st := range subTests {
+	for _, st := range parseTests {
 		t.Run(st.name, st.run)
 	}
 }

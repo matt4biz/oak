@@ -1,7 +1,8 @@
-package stack
+package oak
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 )
 
@@ -62,6 +63,7 @@ type Machine struct {
 	vars    map[string]*Symbol
 	words   map[string]*Word
 	builtin map[string]Expr
+	output  io.Writer
 	digits  uint
 	disp    display
 	base    radix
@@ -83,11 +85,12 @@ type Expr func(m *Machine) error
 
 // New returns a new stack-based machine with an empty
 // stack.
-func New() *Machine {
+func New(o io.Writer) *Machine {
 	m := Machine{
 		digits: 2,
 		vars:   make(map[string]*Symbol, 1024),
 		words:  make(map[string]*Word),
+		output: o,
 	}
 
 	m.SetBuiltins()
@@ -118,7 +121,7 @@ func (m *Machine) Eval(line int, exprs []Expr) (interface{}, error) {
 		}
 
 		if m.debug {
-			showStack(m.stack)
+			showStack(m.output, m.stack)
 		}
 	}
 
@@ -189,7 +192,7 @@ func (m *Machine) SetOptions(o map[string]string) {
 }
 
 func Show(m *Machine) error {
-	fmt.Println("base:", m.Base(), "mode:", m.Mode(), "display:", m.Display())
+	fmt.Fprintln(m.output, "base:", m.Base(), "mode:", m.Mode(), "display:", m.Display())
 	return nil
 }
 
@@ -311,14 +314,14 @@ func trimQuotes(s string) string {
 	return s
 }
 
-func showStack(s []*Value) {
+func showStack(w io.Writer, s []*Value) {
 	l := len(s)
 
-	fmt.Print("[")
+	fmt.Fprint(w, "[")
 
 	for i := l - 1; i >= 0; i-- {
-		fmt.Print(*s[i], ", ")
+		fmt.Fprint(w, *s[i], ", ")
 	}
 
-	fmt.Println("]")
+	fmt.Fprintln(w, "]")
 }

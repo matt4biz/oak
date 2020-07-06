@@ -1,8 +1,10 @@
-package scan
+package oak
 
 import (
 	"unicode"
 	"unicode/utf8"
+
+	"oak/token"
 )
 
 // state functions
@@ -14,7 +16,7 @@ func lexComment(l *Scanner) stateFn {
 
 		if r == eof || r == '\n' {
 			if l.config.Interactive {
-				l.emit(EOF)
+				l.emit(token.EOF)
 			}
 			break
 		}
@@ -25,7 +27,7 @@ func lexComment(l *Scanner) stateFn {
 		l.start = l.pos - 1
 
 		// Emitting comment also advances l.line.
-		l.emit(Comment) // but the text is lost
+		l.emit(token.Comment) // but the text is lost
 	}
 
 	return lexSpace
@@ -39,24 +41,24 @@ func lexAny(l *Scanner) stateFn {
 	switch {
 	case r == eof:
 		if l.config.Interactive {
-			l.emit(EOF)
+			l.emit(token.EOF)
 		}
 		return nil
 
 	case r == '\n': // TODO: \r
-		l.emit(Newline)
+		l.emit(token.Newline)
 		return lexAny
 
 	case r == ',':
-		l.emit(Comma)
+		l.emit(token.Comma)
 		return lexAny
 
 	case r == ':':
-		l.emit(Colon)
+		l.emit(token.Colon)
 		return lexAny
 
 	case r == ';':
-		l.emit(Semicolon)
+		l.emit(token.Semicolon)
 		return lexAny
 
 	case r == '#':
@@ -78,7 +80,7 @@ func lexAny(l *Scanner) stateFn {
 		if l.start > 0 {
 			rr, _ := utf8.DecodeLastRuneInString(l.input[:l.start])
 			if isAlphaNumeric(rr) || rr == ')' || rr == ']' {
-				l.emit(Operator)
+				l.emit(token.Operator)
 				return lexAny
 			}
 		}
@@ -102,31 +104,31 @@ func lexAny(l *Scanner) stateFn {
 		return lexIdentifier
 
 	case r == '[':
-		l.emit(LeftBracket)
+		l.emit(token.LeftBracket)
 		return lexAny
 
 	case r == ']':
-		l.emit(RightBracket)
+		l.emit(token.RightBracket)
 		return lexAny
 
 	case r == '{':
-		l.emit(LeftBrace)
+		l.emit(token.LeftBrace)
 		return lexAny
 
 	case r == '}':
-		l.emit(RightBrace)
+		l.emit(token.RightBrace)
 		return lexAny
 
 	case r == '(':
-		l.emit(LeftParen)
+		l.emit(token.LeftParen)
 		return lexAny
 
 	case r == ')':
-		l.emit(RightParen)
+		l.emit(token.RightParen)
 		return lexAny
 
 	case r <= unicode.MaxASCII && unicode.IsPrint(r):
-		l.emit(Char)
+		l.emit(token.Char)
 		return lexAny
 
 	default:
@@ -166,9 +168,9 @@ loop:
 
 			switch {
 			case isAllDigits(word, l.config.Base):
-				l.emit(Number)
+				l.emit(token.Number)
 			default:
-				l.emit(Identifier)
+				l.emit(token.Identifier)
 			}
 
 			break loop
@@ -182,9 +184,9 @@ loop:
 // whatever; there may be a reduction or inner or outer product.
 func lexOperator(l *Scanner) stateFn {
 	if isIdentifier(l.input[l.start:l.pos]) {
-		l.emit(Identifier)
+		l.emit(token.Identifier)
 	} else {
-		l.emit(Operator)
+		l.emit(token.Operator)
 	}
 
 	return lexSpace
@@ -223,7 +225,7 @@ loop:
 		}
 	}
 
-	l.emit(Char)
+	l.emit(token.Char)
 	return lexAny
 }
 
@@ -238,7 +240,7 @@ func lexNumber(l *Scanner) stateFn {
 		r := l.peek()
 
 		if r != '.' && !l.isNumeral(r) {
-			l.emit(Operator)
+			l.emit(token.Operator)
 			return lexAny
 		}
 	}
@@ -247,7 +249,7 @@ func lexNumber(l *Scanner) stateFn {
 		return l.errorf("bad number syntax: %s", l.input[l.start:l.pos])
 	}
 
-	l.emit(Number)
+	l.emit(token.Number)
 	return lexAny
 }
 
@@ -350,6 +352,6 @@ loop:
 		}
 	}
 
-	l.emit(String)
+	l.emit(token.String)
 	return lexAny
 }

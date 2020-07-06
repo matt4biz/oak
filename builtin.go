@@ -1,8 +1,8 @@
-package stack
+package oak
 
 import (
 	"errors"
-	"os"
+	"io"
 )
 
 var (
@@ -213,7 +213,7 @@ func (m *Machine) SetRadians() {
 	m.mode = radians
 }
 
-func (m *Machine) Quit() {
+func (m *Machine) Quit() error {
 	// TODO - save state if required
-	os.Exit(0)
+	return io.EOF
 }

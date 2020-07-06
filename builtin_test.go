@@ -1,9 +1,12 @@
-package stack
+package oak
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
 
 func TestConstants(t *testing.T) {
-	m := New()
+	m := New(os.Stdout)
 
 	m.SetFixed(4)
 

@@ -1,7 +1,8 @@
-package stack
+package oak
 
 import (
 	"math"
+	"os"
 	"strconv"
 	"testing"
 )
@@ -268,7 +269,7 @@ func TestStatsOp(t *testing.T) {
 		{StatsOpAdd, 20, 5.78, 5},
 	}
 
-	m := New()
+	m := New(os.Stdout)
 
 	m.setDisplay("fix")
 	m.digits = 2

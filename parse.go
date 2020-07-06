@@ -1,4 +1,4 @@
-package parse
+package oak
 
 import (
 	"errors"
@@ -8,15 +8,14 @@ import (
 	"strconv"
 	"strings"
 
-	"oak/scan"
-	"oak/stack"
+	"oak/token"
 )
 
 type Parser struct {
-	machine *stack.Machine
-	scanner *scan.Scanner
-	tokens  []scan.Token
-	buff    [100]scan.Token
+	machine *Machine
+	scanner *Scanner
+	tokens  []token.Token
+	buff    [100]token.Token
 	w       io.Writer
 	line    int
 	base    int
@@ -25,7 +24,7 @@ type Parser struct {
 
 // New returns a new parser using a particular stack machine and scanner.
 // In debug mode it will show tokens for each line.
-func New(m *stack.Machine, s *scan.Scanner, w io.Writer, line int, debug bool) *Parser {
+func NewParser(m *Machine, s *Scanner, w io.Writer, line int, debug bool) *Parser {
 	p := Parser{
 		machine: m,
 		scanner: s,
@@ -42,7 +41,7 @@ func New(m *stack.Machine, s *scan.Scanner, w io.Writer, line int, debug bool) *
 // there's a comma or newline, it will emit a NOP as a placeholder, so
 // we only expect an empty list when we've run out of input to parse.
 // This requires the scanner to return tokens for newline or comma.
-func (p *Parser) Line() ([]stack.Expr, string, error) {
+func (p *Parser) Line() ([]Expr, string, error) {
 	p.base = p.machine.Base()
 
 	s, ok := p.readTokensToNewline()
@@ -73,49 +72,49 @@ func (p *Parser) readTokensToNewline() (string, bool) {
 	p.tokens = p.buff[:0]
 
 	for {
-		tok := p.scanner.Next()
+		t := p.scanner.Next()
 
-		switch tok.Type {
-		case scan.Error:
-			p.errorf("%s", tok)
+		switch t.Type {
+		case token.Error:
+			p.errorf("%s", t)
 
-		case scan.Newline, scan.Comma:
-			p.tokens = append(p.tokens, tok)
+		case token.Newline, token.Comma:
+			p.tokens = append(p.tokens, t)
 			return p.scanner.Line(), true
 
-		case scan.EOF:
+		case token.EOF:
 			return p.scanner.Line(), len(p.tokens) > 0
 		}
 
-		p.tokens = append(p.tokens, tok)
+		p.tokens = append(p.tokens, t)
 	}
 }
 
 // evaluate processes actual tokens to create the expression
 // list that will be executed. For newline/comma, we return
 // a NOP so that the list is not empty until we reach EOF.
-func (p *Parser) evaluate() ([]stack.Expr, error) {
+func (p *Parser) evaluate() ([]Expr, error) {
 	var (
-		result []stack.Expr
-		e      stack.Expr
+		result []Expr
+		e      Expr
 		err    error
 	)
 
 	for _, t := range p.tokens {
 		switch t.Type {
-		case scan.Number:
+		case token.Number:
 			if e, err = p.number(t.Text); err != nil {
 				p.errorf("%s: %s", err, t.Text)
 				return nil, err
 			}
 
-		case scan.Operator:
+		case token.Operator:
 			if e, err = p.operator(t.Text); err != nil {
 				p.errorf("bad operator: %s", t.Text)
 				return nil, err
 			}
 
-		case scan.Identifier:
+		case token.Identifier:
 			if strings.HasPrefix(t.Text, "$") {
 				if e, err = p.symbol(t.Text); err != nil {
 					p.errorf("bad symbol: %s", t.Text)
@@ -132,14 +131,14 @@ func (p *Parser) evaluate() ([]stack.Expr, error) {
 				p.checkForBaseChange(t.Text)
 			}
 
-		case scan.String:
+		case token.String:
 			if e, err = p.str(t.Text); err != nil {
 				p.errorf("invalid string: %q", t.Text)
 				return nil, err
 			}
 
-		case scan.Comma, scan.Newline, scan.Comment:
-			e = stack.Nop
+		case token.Comma, token.Newline, token.Comment:
+			e = Nop
 		}
 
 		if e != nil {
@@ -156,7 +155,7 @@ func (p *Parser) errorf(format string, args ...interface{}) {
 	fmt.Fprintf(p.w, format+"\n", args...)
 }
 
-func (p *Parser) number(s string) (result stack.Expr, err error) {
+func (p *Parser) number(s string) (result Expr, err error) {
 	if p.base != 10 {
 		// if we're in integer mode, we want to parse integers, possibly
 		// with a leading 0 or 0x/0b prefix; floats will not work here
@@ -186,7 +185,7 @@ func (p *Parser) number(s string) (result stack.Expr, err error) {
 			return nil, err
 		}
 
-		return stack.Integer(uint(n)), nil
+		return Integer(uint(n)), nil
 	}
 
 	if strings.HasPrefix(s, "0b") || strings.HasPrefix(s, "0B") ||
@@ -200,7 +199,7 @@ func (p *Parser) number(s string) (result stack.Expr, err error) {
 		return nil, err
 	}
 
-	return stack.Number(f), nil
+	return Number(f), nil
 }
 
 func (p *Parser) checkForBaseChange(id string) {
@@ -216,50 +215,50 @@ func (p *Parser) checkForBaseChange(id string) {
 	}
 }
 
-func (p *Parser) str(s string) (stack.Expr, error) {
+func (p *Parser) str(s string) (Expr, error) {
 	if len(s) == 0 {
 		return nil, fmt.Errorf("empty string")
 	}
 
-	return stack.String(s), nil
+	return String(s), nil
 }
 
-func (p *Parser) operator(s string) (stack.Expr, error) {
+func (p *Parser) operator(s string) (Expr, error) {
 	switch s {
 	case "+":
-		return stack.Add, nil
+		return Add, nil
 	case "*":
-		return stack.Multiply, nil
+		return Multiply, nil
 	case "-":
-		return stack.Subtract, nil
+		return Subtract, nil
 	case "/":
-		return stack.Divide, nil
+		return Divide, nil
 	case "%":
-		return stack.Modulo, nil
+		return Modulo, nil
 	case "**":
-		return stack.Power, nil
+		return Power, nil
 	case "!":
-		return stack.Store, nil
+		return Store, nil
 	case "@":
-		return stack.Recall, nil
+		return Recall, nil
 	case "~":
-		return stack.Not, nil
+		return Not, nil
 	case "&":
-		return stack.And, nil
+		return And, nil
 	case "|":
-		return stack.Or, nil
+		return Or, nil
 	case "^":
-		return stack.Xor, nil
+		return Xor, nil
 	case "<<":
-		return stack.LeftShift, nil
+		return LeftShift, nil
 	case ">>":
-		return stack.RightShift, nil
+		return RightShift, nil
 	case ">>>":
-		return stack.ArithShift, nil
+		return ArithShift, nil
 	case "∑+":
-		return stack.StatsOpAdd, nil
+		return StatsOpAdd, nil
 	case "∑-":
-		return stack.StatsOpRm, nil
+		return StatsOpRm, nil
 	}
 
 	return nil, errUnknown
@@ -270,20 +269,20 @@ var (
 	userVar   = regexp.MustCompile(`\$[a-zA-Z][a-zA-Z_0-9]*`)
 )
 
-func (p *Parser) symbol(s string) (stack.Expr, error) {
+func (p *Parser) symbol(s string) (Expr, error) {
 	if resultVar.MatchString(s) {
-		return stack.GetSymbol(s), nil
+		return GetSymbol(s), nil
 	}
 
 	if userVar.MatchString(s) {
-		return stack.GetUserVar(s), nil
+		return GetUserVar(s), nil
 	}
 
 	return nil, errUnknown
 }
 
-func (p *Parser) identifier(s string) (stack.Expr, error) {
-	if e := stack.Predefined(s); e != nil {
+func (p *Parser) identifier(s string) (Expr, error) {
+	if e := Predefined(s); e != nil {
 		return e, nil
 	}
 

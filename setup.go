@@ -1,4 +1,4 @@
-package stack
+package oak
 
 import (
 	"fmt"
@@ -353,7 +353,7 @@ func (m *Machine) SetBuiltins() {
 	m.builtin["estm"] = LinEstimate
 
 	m.builtin["dump"] = func(m *Machine) error {
-		fmt.Println("DUMP ========")
+		fmt.Fprintln(m.output, "DUMP ========")
 
 		if m.stats != nil {
 			fmt.Printf("STAT: %s\n", m.stats)
@@ -372,22 +372,21 @@ func (m *Machine) SetBuiltins() {
 			fmt.Printf("ST %d: %s\n", l, *m.stack[i])
 		}
 
-		fmt.Println()
+		fmt.Fprintln(m.output)
 
 		for k, v := range m.vars {
 			fmt.Printf("V %s: %s\n", k, *v.V)
 		}
 
-		fmt.Println("======== DUMP")
+		fmt.Fprintln(m.output, "======== DUMP")
 		return nil
 	}
 
 	m.builtin["bye"] = func(m *Machine) error {
 		if m.inter {
-			fmt.Println("Goodbye")
+			fmt.Fprintln(m.output, "Goodbye")
 		}
 
-		m.Quit()
-		return nil
+		return m.Quit()
 	}
 }

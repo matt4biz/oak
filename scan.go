@@ -1,51 +1,16 @@
-package scan
+package oak
 
 import (
 	"fmt"
 	"io"
-	"strconv"
-
-	// "os"
 	"strings"
 	"unicode/utf8"
+
+	"oak/token"
 )
-
-// Type identifies the type of lex items.
-type Type int
-
-const (
-	EOF   Type = iota // zero value so closed channel delivers EOF
-	Error             // error occurred; value is text of error
-	Newline
-	Comment
-	// Interesting things
-	Char         // printable ASCII character
-	Colon        // ':'
-	Comma        // ','
-	Identifier   // alphanumeric identifier
-	LeftBracket  // '['
-	LeftBrace    // '{'
-	LeftParen    // '('
-	Number       // number (as float64)
-	Operator     // known operator
-	RightBracket // ']'
-	RightBrace   // '}'
-	RightParen   // ')'
-	Semicolon    // ';'
-	Space        // run of spaces separating
-	String       // quoted string (includes quotes)
-	Variable     // $+number or $+identifier
-)
-
-// Token represents a token or text string returned from the scanner.
-type Token struct {
-	Type Type   // The type of this item.
-	Line int    // The line number on which this token appears
-	Text string // The text of this item.
-}
 
 // Config holds some configuration data for the scanner.
-type Config struct {
+type ScanConfig struct {
 	Base        int // TODO - remove; scanner needs to accept digits based on prefix only
 	Line        int
 	Interactive bool
@@ -53,8 +18,8 @@ type Config struct {
 
 // Scanner holds the state of the scanner.
 type Scanner struct {
-	tokens chan Token // channel of scanned items
-	config Config
+	tokens chan token.Token // channel of scanned items
+	config ScanConfig
 	r      io.ByteReader
 	done   bool
 	name   string // the name of the input; used only for error reports
@@ -68,7 +33,7 @@ type Scanner struct {
 }
 
 // New creates a new scanner for the input string.
-func New(c Config, name string, r io.ByteReader) *Scanner {
+func NewScanner(c ScanConfig, name string, r io.ByteReader) *Scanner {
 	if c.Line == 0 {
 		c.Line = 1
 	}
@@ -77,7 +42,7 @@ func New(c Config, name string, r io.ByteReader) *Scanner {
 		r:      r,
 		name:   name,
 		line:   c.Line,
-		tokens: make(chan Token, 2), // We need a little room to save tokens.
+		tokens: make(chan token.Token, 2), // We need a little room to save tokens.
 		config: c,
 		state:  lexAny,
 	}
@@ -86,7 +51,7 @@ func New(c Config, name string, r io.ByteReader) *Scanner {
 }
 
 // Next returns the next token.
-func (l *Scanner) Next() Token {
+func (l *Scanner) Next() token.Token {
 	// The lexer is concurrent but we don't want it to run in parallel
 	// with the rest of the interpreter, so we only run the state machine
 	// when we need a token.
@@ -107,71 +72,11 @@ func (l *Scanner) Next() Token {
 		l.tokens = nil
 	}
 
-	return Token{EOF, l.pos, "EOF"}
+	return token.Token{Type: token.EOF, Line: l.pos, Text: "EOFToken"}
 }
 
 func (l *Scanner) Line() string {
 	return l.input
-}
-
-func (t Type) String() string {
-	switch t {
-	case EOF:
-		return "EOF"
-	case Error:
-		return "Error"
-	case Newline:
-		return "Newline"
-	case Comment:
-		return "Comment"
-	case Char:
-		return "Char"
-	case Colon:
-		return "Colon"
-	case Comma:
-		return "Comma"
-	case Identifier:
-		return "Identifier"
-	case LeftBracket:
-		return "LeftBracket"
-	case LeftBrace:
-		return "LeftBrace"
-	case LeftParen:
-		return "LeftParen"
-	case Number:
-		return "Number"
-	case Operator:
-		return "Operator"
-	case RightBracket:
-		return "RightBracket"
-	case RightBrace:
-		return "RightBrace"
-	case RightParen:
-		return "RightParen"
-	case Semicolon:
-		return "Semicolon"
-	case Space:
-		return "Space"
-	case String:
-		return "String"
-	}
-
-	return "UNKNOWN[" + strconv.Itoa(int(t)) + "]"
-}
-
-func (i Token) String() string {
-	switch {
-	case i.Type == EOF:
-		return "EOF"
-
-	case i.Type == Error:
-		return "error: " + i.Text
-
-	case len(i.Text) > 10:
-		return fmt.Sprintf("[%d] %s: %.10q...", i.Line, i.Type, i.Text)
-	}
-
-	return fmt.Sprintf("[%d] %s: %q", i.Line, i.Type, i.Text)
 }
 
 const eof = -1
@@ -244,10 +149,10 @@ func (l *Scanner) backup() {
 }
 
 // emit passes an item back to the client.
-func (l *Scanner) emit(t Type) {
+func (l *Scanner) emit(t token.Type) {
 	s := l.input[l.start:l.pos]
 
-	if t == Newline || t == Comma || t == Comment {
+	if t == token.Newline || t == token.Comma || t == token.Comment {
 		s = ""
 	}
 
@@ -257,11 +162,11 @@ func (l *Scanner) emit(t Type) {
 	// fmt.Fprintf(os.Stderr, "%s:%d: emit %s\n", l.name, l.line, Token{t, l.line, s})
 	// }
 
-	l.tokens <- Token{t, l.line, s}
+	l.tokens <- token.Token{Type: t, Line: l.line, Text: s}
 	l.start = l.pos
 	l.width = 0
 
-	if t == Newline || t == Comma || t == Comment {
+	if t == token.Newline || t == token.Comma || t == token.Comment {
 		l.line++
 	}
 }
@@ -293,7 +198,7 @@ func (l *Scanner) acceptRun(valid string) {
 // newline (so the next token will be a newline, skipping the
 // rest of the current line), and continues to scan.
 func (l *Scanner) errorf(format string, args ...interface{}) stateFn {
-	l.tokens <- Token{Error, l.line, fmt.Sprintf(format, args...)}
+	l.tokens <- token.Token{Type: token.Error, Line: l.line, Text: fmt.Sprintf(format, args...)}
 	l.start = 0
 	l.pos = 0
 	l.input = "\n"

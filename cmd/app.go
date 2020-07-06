@@ -62,7 +62,7 @@ type app struct {
 
 // fromArgs reads the flags and updates the app accordingly.
 func (a *app) fromArgs(args []string) error {
-	fl := flag.NewFlagSet("xkcd-grab", flag.ContinueOnError)
+	fl := flag.NewFlagSet(pname, flag.ContinueOnError)
 
 	fl.StringVar(&a.fn, "f", "", "command file")
 	fl.StringVar(&a.input, "e", "", "immediate commands")

@@ -167,7 +167,7 @@ func (a *app) fromReadline(home string) error {
 	for {
 		line, err := rl.Readline()
 
-		if err != nil { // io.EOFToken
+		if err != nil { // io.EOF
 			break
 		}
 
@@ -177,8 +177,11 @@ func (a *app) fromReadline(home string) error {
 		p := oak.NewParser(a.machine, s, a.stdOut, il, a.debug)
 
 		e, _, _ := p.Line()
+		i, err := a.machine.Eval(il, e)
 
-		if i, err := a.machine.Eval(il, e); err != nil {
+		if err == io.EOF { // bye
+			return nil
+		} else if err != nil {
 			fmt.Fprintln(a.stdOut, err)
 		} else {
 			fmt.Fprintf(a.stdOut, "%d: %v\n", il, i)

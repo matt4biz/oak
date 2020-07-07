@@ -195,9 +195,7 @@ versus
 	> dec
 	3: 10
 
-Binary numbers display in multiples of 8 bits, octal in multiples of 3 digits, and hexadecimal in multiples of 4. Thus 
-12 will show in 8 bits, but 257 will show in 16 bits in binary mode; both will show using 4 digits in hexadecimal mode, 
-while 65536 will show using 8 hex digits.
+Binary numbers display at a minimum 8 bits, octal 3 digits (plus leading zero), and hexadecimal 4 digits.
 
 There will be no support for converting floating point numbers into their equivalent unsigned integer form and vice 
 versa (i.e., for debugging IEEE formats).
@@ -495,7 +493,8 @@ oak has only a few options
 
 	-e <input>  read input from the command line
 	-f <file>   read input from a file
-	
+	-c <file>   use this file for initial configuration
+	            (in place of `~/.oak.yml`)
 	-i <file>   load a stored machine image from a file
 	            (this creates a non-empty initial state)
 

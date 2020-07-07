@@ -95,7 +95,7 @@ func lexAny(l *Scanner) stateFn {
 		fallthrough // for ==
 
 	case l.isOperator(r):
-		// Must be after after = so == is an operator,
+		// Must be after = so == is an operator,
 		// and after numbers, so '-' can be a sign.
 		return lexOperator
 

@@ -17,9 +17,11 @@ type Parser struct {
 	tokens  []token.Token
 	buff    [100]token.Token
 	w       io.Writer
+	word    *Word
 	line    int
 	base    int
 	debug   bool
+	compile bool
 }
 
 // New returns a new parser using a particular stack machine and scanner.
@@ -32,6 +34,22 @@ func NewParser(m *Machine, s *Scanner, w io.Writer, line int, debug bool) *Parse
 		line:    line,
 		base:    m.Base(),
 		debug:   debug,
+	}
+
+	return &p
+}
+
+// WordParser returns a new parser with tokens from a word definition;
+// it cannot scan for more tokens.
+func WordParser(m *Machine, t []token.Token) *Parser {
+	p := Parser{
+		machine: m,
+		tokens:  t,
+		w:       m.output,
+		line:    t[0].Line,
+		base:    m.Base(),
+		debug:   m.debug,
+		compile: true,
 	}
 
 	return &p
@@ -60,6 +78,16 @@ func (p *Parser) Line() ([]Expr, string, error) {
 	e, err := p.evaluate()
 
 	return e, s, err
+}
+
+// Compile is only used for a WordParser, to compile
+// the word's tokens once they've all been picked up.
+func (p *Parser) Compile() ([]Expr, error) {
+	if len(p.tokens) > 0 && p.debug {
+		fmt.Printf("%d: %s\n", p.line, p.tokens)
+	}
+
+	return p.evaluate()
 }
 
 // readTokensToNewline clears the token buffer and fills it
@@ -101,6 +129,22 @@ func (p *Parser) evaluate() ([]Expr, error) {
 	)
 
 	for _, t := range p.tokens {
+		if p.word != nil {
+			p.word.T = append(p.word.T, t)
+
+			if t.Type == token.Semicolon {
+				if err := p.word.Compile(p.machine); err != nil {
+					p.errorf("invalid word: %s", err)
+					return nil, err
+				}
+
+				p.machine.Install(p.word)
+				p.word = nil
+			}
+
+			continue
+		}
+
 		switch t.Type {
 		case token.Number:
 			if e, err = p.number(t.Text); err != nil {
@@ -136,6 +180,11 @@ func (p *Parser) evaluate() ([]Expr, error) {
 				p.errorf("invalid string: %q", t.Text)
 				return nil, err
 			}
+
+		case token.Colon:
+			p.word = new(Word)
+			p.word.T = append(p.word.T, t)
+			e = nil
 
 		case token.Comma, token.Newline, token.Comment:
 			e = Nop
@@ -271,6 +320,10 @@ var (
 
 func (p *Parser) symbol(s string) (Expr, error) {
 	if resultVar.MatchString(s) {
+		if p.compile {
+			return nil, fmt.Errorf("invalid result var %s", s)
+		}
+
 		return GetSymbol(s), nil
 	}
 
@@ -286,8 +339,8 @@ func (p *Parser) identifier(s string) (Expr, error) {
 		return e, nil
 	}
 
-	if p.machine.Known(s) {
-		return p.machine.Word(s)
+	if w := p.machine.Word(s); w != nil {
+		return w, nil
 	}
 
 	return p.machine.Builtin(s)

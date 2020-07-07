@@ -6,38 +6,6 @@ import (
 	"io/ioutil"
 )
 
-func Save(m *Machine) error {
-	if len(m.stack) < 1 {
-		return errUnderflow
-	}
-
-	x := m.Pop()
-
-	if x.T != stringer {
-		return fmt.Errorf("save: invalid operand x=%#v", x)
-	}
-
-	fn := x.V.(string)
-
-	return m.SaveToFile(fn)
-}
-
-func Load(m *Machine) error {
-	if len(m.stack) < 1 {
-		return errUnderflow
-	}
-
-	x := m.Pop()
-
-	if x.T != stringer {
-		return fmt.Errorf("save: invalid operand x=%#v", x)
-	}
-
-	fn := x.V.(string)
-
-	return m.LoadFromFile(fn)
-}
-
 // Settings is used to save internal settings.
 type Settings struct {
 	Base    radix   `json:"base"`
@@ -134,3 +102,37 @@ func (m *Machine) LoadFromFile(fn string) error {
 
 	return nil
 }
+
+var (
+	Save ExprFunc = func(m *Machine) error {
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
+		x := m.Pop()
+
+		if x.T != stringer {
+			return fmt.Errorf("save: invalid operand x=%#v", x)
+		}
+
+		fn := x.V.(string)
+
+		return m.SaveToFile(fn)
+	}
+
+	Load ExprFunc = func(m *Machine) error {
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
+		x := m.Pop()
+
+		if x.T != stringer {
+			return fmt.Errorf("save: invalid operand x=%#v", x)
+		}
+
+		fn := x.V.(string)
+
+		return m.LoadFromFile(fn)
+	}
+)

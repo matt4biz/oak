@@ -72,16 +72,17 @@ type Machine struct {
 	inter   bool
 }
 
-// Word represents a stack-based function (macro).
-type Word struct {
-	N string
-	P []Expr
-	// TODO - how do we keep def'n for recompile?
-}
-
 // Expr represents an expression (operation) that runs
 // against the stack.
-type Expr func(m *Machine) error
+type Expr interface {
+	Eval(m *Machine) error
+}
+
+type ExprFunc func(m *Machine) error
+
+func (e ExprFunc) Eval(m *Machine) error {
+	return e(m)
+}
 
 // New returns a new stack-based machine with an empty
 // stack.
@@ -116,7 +117,7 @@ func (m *Machine) Eval(line int, exprs []Expr) (interface{}, error) {
 			return nil, fmt.Errorf("found nil expression")
 		}
 
-		if err := e(m); err != nil {
+		if err := e.Eval(m); err != nil {
 			return nil, err
 		}
 
@@ -188,35 +189,6 @@ func (m *Machine) SetOptions(o map[string]string) {
 
 	if display, ok := o["display_mode"]; ok {
 		m.setDisplay(display)
-	}
-}
-
-func Show(m *Machine) error {
-	fmt.Fprintln(m.output, "base:", m.Base(), "mode:", m.Mode(), "display:", m.Display())
-	return nil
-}
-
-// Put a numerical value onto the stack.
-func Number(f float64) Expr {
-	return func(m *Machine) error {
-		m.Push(m.makeFloatVal(f))
-		return nil
-	}
-}
-
-// Put a numerical value onto the stack.
-func Integer(n uint) Expr {
-	return func(m *Machine) error {
-		m.Push(m.makeFloatVal(float64(n)))
-		return nil
-	}
-}
-
-// Put a string value onto the stack.
-func String(s string) Expr {
-	return func(m *Machine) error {
-		m.Push(m.makeStringVal(s))
-		return nil
 	}
 }
 

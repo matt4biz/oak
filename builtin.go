@@ -10,10 +10,6 @@ var (
 	errNoStats   = errors.New("stats empty")
 )
 
-func Nop(m *Machine) error {
-	return nil
-}
-
 // Last returns the last top-of-stack value that
 // was popped with PopX for use in a calculation.
 func (m *Machine) Last() *Value {

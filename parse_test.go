@@ -10,6 +10,7 @@ type parseTest struct {
 	name  string
 	input string
 	want  []string // one for each line
+	err   string
 }
 
 func (st parseTest) run(t *testing.T) {
@@ -28,7 +29,24 @@ func (st parseTest) run(t *testing.T) {
 
 	var i int
 
-	for got, _, _ := p.Line(); len(got) > 0 && got[0] != nil; got, _, _ = p.Line() {
+	for {
+		got, _, err := p.Line()
+
+		if err != nil {
+			if st.err != err.Error() {
+				t.Fatalf("couldn't parse: %s", err)
+			}
+
+			// we got our error, so we're done
+			return
+		} else if st.err != "" {
+			t.Fatalf("expected err=%s, didn't get it", st.err)
+		}
+
+		if len(got) == 0 || got[0] == nil {
+			break
+		}
+
 		top, err := m.Eval(i+1, got)
 
 		if err != nil {
@@ -94,6 +112,21 @@ var parseTests = []parseTest{
 		name:  "simple-mode-chg",
 		input: `3 fix "rad" mode 0.5236 sin`,
 		want:  []string{"0.500"},
+	},
+	{
+		name:  "simple-macro",
+		input: `3 fix :dB log 10*; 4 dB`,
+		want:  []string{"6.021"},
+	},
+	{
+		name:  "failed-macro",
+		input: `:1;`,
+		err:   "invalid definition",
+	},
+	{
+		name:  "failed-macro-var",
+		input: `:db $1 10*;`,
+		err:   "invalid result var $1",
 	},
 	{
 		name:  "modulo",
@@ -203,7 +236,7 @@ var parseTests = []parseTest{
 	{
 		name:  "bad-parse",
 		input: "x",
-		want:  []string{},
+		err:   "x unknown",
 	},
 }
 

@@ -6,29 +6,35 @@ import (
 	"strconv"
 )
 
-func (m *Machine) SetBuiltins() {
-	m.builtin = make(map[string]Expr, 1024)
-
+var (
 	// CONSTANTS
 
-	m.builtin["e"] = func(m *Machine) error {
+	E ExprFunc = func(m *Machine) error {
 		m.Push(Value{floater, m.mode, math.E, m})
 		return nil
 	}
 
-	m.builtin["pi"] = func(m *Machine) error {
+	Pi ExprFunc = func(m *Machine) error {
 		m.Push(Value{floater, m.mode, math.Pi, m})
 		return nil
 	}
 
-	m.builtin["phi"] = func(m *Machine) error {
+	Phi ExprFunc = func(m *Machine) error {
 		m.Push(Value{floater, m.mode, math.Phi, m})
 		return nil
 	}
 
 	// MISCELLANY
 
-	m.builtin["chs"] = func(m *Machine) error {
+	Bye ExprFunc = func(m *Machine) error {
+		if m.inter {
+			fmt.Fprintln(m.output, "Goodbye")
+		}
+
+		return m.Quit()
+	}
+
+	ChangeSign ExprFunc = func(m *Machine) error {
 		if t := m.Top(); t != nil {
 			switch t.T {
 			case floater:
@@ -46,7 +52,7 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["clr"] = func(m *Machine) error {
+	Clear ExprFunc = func(m *Machine) error {
 		if t := m.Top(); t != nil {
 			switch t.T {
 			case floater:
@@ -68,7 +74,7 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["clrall"] = func(m *Machine) error {
+	ClearAll ExprFunc = func(m *Machine) error {
 		// TODO - clear other non-stack registers
 		//   when are defined, e.g. for statistics
 
@@ -79,13 +85,13 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["clrstk"] = func(m *Machine) error {
+	ClearStack ExprFunc = func(m *Machine) error {
 		m.stack = nil
 		m.clearStats()
 		return nil
 	}
 
-	m.builtin["clrreg"] = func(m *Machine) error {
+	ClearRegs ExprFunc = func(m *Machine) error {
 		// TODO - clear other non-stack registers
 		//   when are defined, e.g. for statistics
 
@@ -94,49 +100,61 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["clrvar"] = func(m *Machine) error {
+	ClearVars ExprFunc = func(m *Machine) error {
 		m.vars = make(map[string]*Symbol)
 		return nil
 	}
 
-	m.builtin["status"] = func(m *Machine) error {
+	Dump ExprFunc = func(m *Machine) error {
+		fmt.Fprintln(m.output, "DUMP ========")
+
+		if m.stats != nil {
+			fmt.Printf("STAT: %s\n", m.stats)
+		}
+
+		if m.x != nil {
+			fmt.Printf("LAST: %s\n", *m.x)
+		} else {
+			fmt.Printf("LAST: <nil>\n")
+		}
+
+		for i, l := 0, len(m.stack); i < len(m.stack); i++ {
+			l--
+			fmt.Printf("ST %d: %s\n", l, *m.stack[i])
+		}
+
+		if len(m.vars) > 0 {
+			fmt.Fprintln(m.output)
+
+			for k, v := range m.vars {
+				fmt.Printf("V %s: %s\n", k, *v.V)
+			}
+		}
+
+		if len(m.words) > 0 {
+			fmt.Fprintln(m.output)
+
+			for k, w := range m.words {
+				fmt.Printf("W %s: %s\n", k, w.Definition())
+			}
+		}
+
+		fmt.Fprintln(m.output, "======== DUMP")
+		return nil
+	}
+
+	Show ExprFunc = func(m *Machine) error {
+		fmt.Fprintln(m.output, "base:", m.Base(), "mode:", m.Mode(), "display:", m.Display())
+		return nil
+	}
+
+	Status ExprFunc = func(m *Machine) error {
 		return Show(m)
 	}
 
 	// STACK OPERATIONS
 
-	m.builtin["drop"] = func(m *Machine) error {
-		m.Pop()
-		return nil
-	}
-
-	m.builtin["dup"] = func(m *Machine) error {
-		return m.Dup()
-	}
-
-	m.builtin["dup2"] = func(m *Machine) error {
-		return m.Dup2()
-	}
-
-	m.builtin["over"] = func(m *Machine) error {
-		return m.Over()
-	}
-
-	m.builtin["roll"] = func(m *Machine) error {
-		m.Roll()
-		return nil
-	}
-
-	m.builtin["top"] = func(m *Machine) error {
-		m.Top()
-		return nil
-	}
-
-	m.builtin["swap"] = func(m *Machine) error {
-		return m.Swap()
-	}
-
-	m.builtin["depth"] = func(m *Machine) error {
+	Depth ExprFunc = func(m *Machine) error {
 		var v interface{}
 		var t tag
 
@@ -154,9 +172,44 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
+	Drop ExprFunc = func(m *Machine) error {
+		m.Pop()
+		return nil
+	}
+
+	Dup ExprFunc = func(m *Machine) error {
+		return m.Dup()
+	}
+
+	Dup2 ExprFunc = func(m *Machine) error {
+		return m.Dup2()
+	}
+
+	Nop ExprFunc = func(m *Machine) error {
+		return nil
+	}
+
+	Over ExprFunc = func(m *Machine) error {
+		return m.Over()
+	}
+
+	Roll ExprFunc = func(m *Machine) error {
+		m.Roll()
+		return nil
+	}
+
+	Swap ExprFunc = func(m *Machine) error {
+		return m.Swap()
+	}
+
+	Top ExprFunc = func(m *Machine) error {
+		m.Top()
+		return nil
+	}
+
 	// BASE CONVERSION
 
-	m.builtin["base"] = func(m *Machine) error {
+	SetBase ExprFunc = func(m *Machine) error {
 		var b uint
 
 		x := m.Pop()
@@ -193,27 +246,7 @@ func (m *Machine) SetBuiltins() {
 		return fmt.Errorf("mode: invalid operand %#v", x.V)
 	}
 
-	m.builtin["hex"] = func(m *Machine) error {
-		m.base = base16
-
-		if t := m.Top(); t != nil {
-			switch t.T {
-			case floater:
-				t.V = uint(t.V.(float64))
-				t.T = integer
-				return nil
-
-			case integer:
-				return nil
-			}
-
-			return fmt.Errorf("hex: invalid operand x=%#v", t.V)
-		}
-
-		return nil
-	}
-
-	m.builtin["bin"] = func(m *Machine) error {
+	Binary ExprFunc = func(m *Machine) error {
 		m.base = base02
 
 		if t := m.Top(); t != nil {
@@ -233,27 +266,7 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["oct"] = func(m *Machine) error {
-		m.base = base08
-
-		if t := m.Top(); t != nil {
-			switch t.T {
-			case floater:
-				t.V = uint(t.V.(float64))
-				t.T = integer
-				return nil
-
-			case integer:
-				return nil
-			}
-
-			return fmt.Errorf("oct: invalid operand x=%#v", t.V)
-		}
-
-		return nil
-	}
-
-	m.builtin["dec"] = func(m *Machine) error {
+	Decimal ExprFunc = func(m *Machine) error {
 		m.base = base10
 
 		if t := m.Top(); t != nil {
@@ -273,9 +286,49 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
+	Hexadecimal ExprFunc = func(m *Machine) error {
+		m.base = base16
+
+		if t := m.Top(); t != nil {
+			switch t.T {
+			case floater:
+				t.V = uint(t.V.(float64))
+				t.T = integer
+				return nil
+
+			case integer:
+				return nil
+			}
+
+			return fmt.Errorf("hex: invalid operand x=%#v", t.V)
+		}
+
+		return nil
+	}
+
+	Octal ExprFunc = func(m *Machine) error {
+		m.base = base08
+
+		if t := m.Top(); t != nil {
+			switch t.T {
+			case floater:
+				t.V = uint(t.V.(float64))
+				t.T = integer
+				return nil
+
+			case integer:
+				return nil
+			}
+
+			return fmt.Errorf("oct: invalid operand x=%#v", t.V)
+		}
+
+		return nil
+	}
+
 	// ANGULAR MODE
 
-	m.builtin["mode"] = func(m *Machine) error {
+	SetMode ExprFunc = func(m *Machine) error {
 		x := m.Pop()
 
 		if x == nil {
@@ -290,43 +343,9 @@ func (m *Machine) SetBuiltins() {
 		return fmt.Errorf("mode: invalid operand %#v", x.V)
 	}
 
-	// FORMATTING
+	// DISPLAY
 
-	m.builtin["fix"] = func(m *Machine) error {
-		x := m.Pop()
-
-		if x == nil {
-			return fmt.Errorf("fix: empty stack")
-		}
-
-		switch x.T {
-		case floater:
-			m.SetFixed(uint(x.V.(float64)))
-		case integer:
-			m.SetFixed(x.V.(uint))
-		}
-
-		return nil
-	}
-
-	m.builtin["sci"] = func(m *Machine) error {
-		x := m.Pop()
-
-		if x == nil {
-			return fmt.Errorf("sci: empty stack")
-		}
-
-		switch x.T {
-		case floater:
-			m.SetScientific(uint(x.V.(float64)))
-		case integer:
-			m.SetScientific(x.V.(uint))
-		}
-
-		return nil
-	}
-
-	m.builtin["eng"] = func(m *Machine) error {
+	SetEngineering ExprFunc = func(m *Machine) error {
 		x := m.Pop()
 
 		if x == nil {
@@ -343,50 +362,100 @@ func (m *Machine) SetBuiltins() {
 		return nil
 	}
 
-	m.builtin["save"] = Save
-	m.builtin["load"] = Load
+	SetFixed ExprFunc = func(m *Machine) error {
+		x := m.Pop()
 
-	m.builtin["sum"] = StatsOpAdd
-	m.builtin["mean"] = Average
-	m.builtin["sdev"] = StdDeviation
-	m.builtin["line"] = LinRegression
-	m.builtin["estm"] = LinEstimate
-
-	m.builtin["dump"] = func(m *Machine) error {
-		fmt.Fprintln(m.output, "DUMP ========")
-
-		if m.stats != nil {
-			fmt.Printf("STAT: %s\n", m.stats)
-		} else {
-			fmt.Printf("STAT: <nil>\n")
-
-		}
-		if m.x != nil {
-			fmt.Printf("LAST: %s\n", *m.x)
-		} else {
-			fmt.Printf("LAST: <nil>\n")
+		if x == nil {
+			return fmt.Errorf("fix: empty stack")
 		}
 
-		for i, l := 0, len(m.stack); i < len(m.stack); i++ {
-			l--
-			fmt.Printf("ST %d: %s\n", l, *m.stack[i])
+		switch x.T {
+		case floater:
+			m.SetFixed(uint(x.V.(float64)))
+		case integer:
+			m.SetFixed(x.V.(uint))
 		}
 
-		fmt.Fprintln(m.output)
-
-		for k, v := range m.vars {
-			fmt.Printf("V %s: %s\n", k, *v.V)
-		}
-
-		fmt.Fprintln(m.output, "======== DUMP")
 		return nil
 	}
 
-	m.builtin["bye"] = func(m *Machine) error {
-		if m.inter {
-			fmt.Fprintln(m.output, "Goodbye")
+	SetScientific ExprFunc = func(m *Machine) error {
+		x := m.Pop()
+
+		if x == nil {
+			return fmt.Errorf("sci: empty stack")
 		}
 
-		return m.Quit()
+		switch x.T {
+		case floater:
+			m.SetScientific(uint(x.V.(float64)))
+		case integer:
+			m.SetScientific(x.V.(uint))
+		}
+
+		return nil
+	}
+)
+
+func (m *Machine) SetBuiltins() {
+	m.builtin = map[string]Expr{
+		// CONSTANTS
+
+		"e":   E,
+		"pi":  Pi,
+		"phi": Phi,
+
+		// MISCELLANY
+
+		"bye":    Bye,
+		"chs":    ChangeSign,
+		"clr":    Clear,
+		"clrall": ClearAll,
+		"clrstk": ClearStack,
+		"clrreg": ClearRegs,
+		"clrvar": ClearVars,
+		"dump":   Dump,
+		"load":   Load,
+		"save":   Save,
+		"show":   Show,
+		"status": Status,
+
+		// STACK OPERATIONS
+
+		"depth": Depth,
+		"drop":  Drop,
+		"dup":   Dup,
+		"dup2":  Dup2,
+		"nop":   Nop,
+		"over":  Over,
+		"roll":  Roll,
+		"swap":  Swap,
+		"top":   Top,
+
+		// BASE CONVERSION
+
+		"base": SetBase,
+		"bin":  Binary,
+		"dec":  Decimal,
+		"hex":  Hexadecimal,
+		"oct":  Octal,
+
+		// ANGULAR MODE
+
+		"mode": SetMode,
+
+		// DISPLAY
+
+		"fix": SetFixed,
+		"eng": SetEngineering,
+		"sci": SetScientific,
+
+		// STATS
+
+		"sum":  StatsOpAdd,
+		"mean": Average,
+		"sdev": StdDeviation,
+		"line": LinRegression,
+		"estm": LinEstimate,
 	}
 }

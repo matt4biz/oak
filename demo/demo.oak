@@ -45,5 +45,7 @@ swap
 # estimate a new value y, corr coeff r
 70 estm
 swap
+# demonstrate a simple macro definition
+:dB log 10*; 4 dB
 # and we're done for now
 bye

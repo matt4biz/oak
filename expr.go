@@ -6,7 +6,31 @@ import (
 	"math/bits"
 )
 
-func BinaryOp(op string, f func(float64, float64) float64) Expr {
+// Put a numerical value onto the stack.
+func Number(f float64) ExprFunc {
+	return func(m *Machine) error {
+		m.Push(m.makeFloatVal(f))
+		return nil
+	}
+}
+
+// Put a numerical value onto the stack.
+func Integer(n uint) ExprFunc {
+	return func(m *Machine) error {
+		m.Push(m.makeIntVal(n))
+		return nil
+	}
+}
+
+// Put a string value onto the stack.
+func String(s string) ExprFunc {
+	return func(m *Machine) error {
+		m.Push(m.makeStringVal(s))
+		return nil
+	}
+}
+
+func BinaryOp(op string, f func(float64, float64) float64) ExprFunc {
 	return func(m *Machine) error {
 		if len(m.stack) < 2 {
 			return errUnderflow
@@ -51,7 +75,7 @@ func BinaryOp(op string, f func(float64, float64) float64) Expr {
 	}
 }
 
-func BinarySaveOp(op string, f func(float64, float64) float64) Expr {
+func BinarySaveOp(op string, f func(float64, float64) float64) ExprFunc {
 	return func(m *Machine) error {
 		if len(m.stack) < 2 {
 			return errUnderflow
@@ -101,7 +125,7 @@ func BinarySaveOp(op string, f func(float64, float64) float64) Expr {
 	}
 }
 
-func UnaryOp(op string, f func(float64) float64) Expr {
+func UnaryOp(op string, f func(float64) float64) ExprFunc {
 	return func(m *Machine) error {
 		if len(m.stack) < 1 {
 			return errUnderflow
@@ -129,7 +153,7 @@ func UnaryOp(op string, f func(float64) float64) Expr {
 	}
 }
 
-func TrigonometryOp(op string, f func(float64) float64) Expr {
+func TrigonometryOp(op string, f func(float64) float64) ExprFunc {
 	return func(m *Machine) error {
 		if len(m.stack) < 1 {
 			return errUnderflow
@@ -169,7 +193,7 @@ func TrigonometryOp(op string, f func(float64) float64) Expr {
 	}
 }
 
-func InverseTrigOp(op string, f func(float64) float64) Expr {
+func InverseTrigOp(op string, f func(float64) float64) ExprFunc {
 	return func(m *Machine) error {
 		if len(m.stack) < 1 {
 			return errUnderflow
@@ -211,7 +235,7 @@ func InverseTrigOp(op string, f func(float64) float64) Expr {
 	}
 }
 
-func BinaryBitwiseOp(op string, f func(y, x uint) uint) Expr {
+func BinaryBitwiseOp(op string, f func(y, x uint) uint) ExprFunc {
 	return func(m *Machine) error {
 		if len(m.stack) < 2 {
 			return errUnderflow
@@ -235,7 +259,7 @@ func BinaryBitwiseOp(op string, f func(y, x uint) uint) Expr {
 	}
 }
 
-func UnaryBitwiseOp(op string, f func(x uint) uint) Expr {
+func UnaryBitwiseOp(op string, f func(x uint) uint) ExprFunc {
 	return func(m *Machine) error {
 		if len(m.stack) < 1 {
 			return errUnderflow
@@ -258,219 +282,221 @@ func UnaryBitwiseOp(op string, f func(x uint) uint) Expr {
 	}
 }
 
-func StatsOpAdd(m *Machine) error {
-	l := len(m.stack)
+var (
+	StatsOpAdd ExprFunc = func(m *Machine) error {
+		l := len(m.stack)
 
-	switch {
-	case l > 1:
-		x := m.stack[l-1]
-		y := m.stack[l-2]
+		switch {
+		case l > 1:
+			x := m.stack[l-1]
+			y := m.stack[l-2]
 
-		if x.T != floater || y.T != floater {
-			return fmt.Errorf("invalid operands y=%#v, x=%#v", y.V, x.V)
+			if x.T != floater || y.T != floater {
+				return fmt.Errorf("invalid operands y=%#v, x=%#v", y.V, x.V)
+			}
+
+			m.x = x
+			m.SumXY(x, y)
+
+			n := *m.stats[sumn] // must copy value
+			m.stack[l-1] = &n
+
+			return nil
+
+		case l == 1:
+			x := m.stack[l-1]
+
+			if x.T != floater {
+				return fmt.Errorf("invalid operand x=%#v", x.V)
+			}
+
+			m.x = x
+
+			m.SumX(x)
+
+			n := *m.stats[sumn] // must copy value
+			m.stack[l-1] = &n
+
+			return nil
 		}
 
-		m.x = x
-		m.SumXY(x, y)
-
-		n := *m.stats[sumn] // must copy value
-		m.stack[l-1] = &n
-
-		return nil
-
-	case l == 1:
-		x := m.stack[l-1]
-
-		if x.T != floater {
-			return fmt.Errorf("invalid operand x=%#v", x.V)
-		}
-
-		m.x = x
-
-		m.SumX(x)
-
-		n := *m.stats[sumn] // must copy value
-		m.stack[l-1] = &n
-
-		return nil
-	}
-
-	return errUnderflow
-}
-
-func StatsOpRm(m *Machine) error {
-	l := len(m.stack)
-
-	switch {
-	case l > 1:
-		x := m.stack[l-1]
-		y := m.stack[l-2]
-
-		if x.T != floater || y.T != floater {
-			return fmt.Errorf("invalid operands y=%#v, x=%#v", y.V, x.V)
-		}
-
-		m.x = x
-		m.RemoveXY(x, y)
-
-		n := *m.stats[sumn] // must copy value
-		m.stack[l-1] = &n
-
-		return nil
-
-	case l == 1:
-		x := m.stack[l-1]
-
-		if x.T != floater {
-			return fmt.Errorf("invalid operand x=%#v", x.V)
-		}
-
-		m.x = x
-
-		m.RemoveX(x)
-
-		n := *m.stats[sumn] // must copy value
-		m.stack[l-1] = &n
-
-		return nil
-	}
-
-	return errUnderflow
-}
-
-func Average(m *Machine) error {
-	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
-		return errNoStats
-	}
-
-	n := m.stats[sumn].V.(float64)
-	xs := m.stats[xsum].V.(float64)
-	ys := m.stats[ysum].V.(float64)
-
-	m.Push(m.makeFloatVal(ys / n))
-	m.Push(m.makeFloatVal(xs / n))
-
-	return nil
-}
-
-func StdDeviation(m *Machine) error {
-	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
-		return errNoStats
-	}
-
-	n := m.stats[sumn].V.(float64)
-	xs := m.stats[xsum].V.(float64)
-	ys := m.stats[ysum].V.(float64)
-	xsq := m.stats[xsqsum].V.(float64)
-	ysq := m.stats[ysqsum].V.(float64)
-
-	sdx := math.Sqrt((n*xsq - xs*xs) / (n * (n - 1)))
-	sdy := math.Sqrt((n*ysq - ys*ys) / (n * (n - 1)))
-
-	m.Push(m.makeFloatVal(sdy))
-	m.Push(m.makeFloatVal(sdx))
-
-	return nil
-}
-
-func LinRegression(m *Machine) error {
-	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
-		return errNoStats
-	}
-
-	n := m.stats[sumn].V.(float64)
-	xs := m.stats[xsum].V.(float64)
-	ys := m.stats[ysum].V.(float64)
-	xsq := m.stats[xsqsum].V.(float64)
-	xys := m.stats[xyprod].V.(float64)
-
-	b := (xys - (xs*ys)/n) / (xsq - (xs*xs)/n)
-	a := (ys - b*xs) / n
-
-	m.Push(m.makeFloatVal(b))
-	m.Push(m.makeFloatVal(a))
-
-	return nil
-}
-
-func LinEstimate(m *Machine) error {
-	if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
-		return errNoStats
-	}
-
-	if len(m.stack) < 1 {
 		return errUnderflow
 	}
 
-	x := m.PopX()
+	StatsOpRm ExprFunc = func(m *Machine) error {
+		l := len(m.stack)
 
-	if x.T != floater {
-		return fmt.Errorf("invalid operand %#v", x.V)
-	}
+		switch {
+		case l > 1:
+			x := m.stack[l-1]
+			y := m.stack[l-2]
 
-	xf := x.V.(float64)
+			if x.T != floater || y.T != floater {
+				return fmt.Errorf("invalid operands y=%#v, x=%#v", y.V, x.V)
+			}
 
-	n := m.stats[sumn].V.(float64)
-	xs := m.stats[xsum].V.(float64)
-	ys := m.stats[ysum].V.(float64)
-	xsq := m.stats[xsqsum].V.(float64)
-	ysq := m.stats[ysqsum].V.(float64)
-	xys := m.stats[xyprod].V.(float64)
+			m.x = x
+			m.RemoveXY(x, y)
 
-	b := (xys - (xs*ys)/n) / (xsq - (xs*xs)/n)
-	a := (ys - b*xs) / n
-	y := b*xf + a
-	r := (xys - (xs*ys)/n) / math.Sqrt((xsq-(xs*xs)/n)*(ysq-(ys*ys)/n))
+			n := *m.stats[sumn] // must copy value
+			m.stack[l-1] = &n
 
-	m.Push(m.makeFloatVal(r))
-	m.Push(m.makeFloatVal(y))
-
-	return nil
-}
-
-func Degrees(m *Machine) error {
-	m.mode = degrees
-
-	if t := m.Top(); t != nil {
-		switch t.T {
-		case floater:
-			t.V = t.V.(float64) * 180 / math.Pi
-			t.M = degrees
 			return nil
 
-		case integer:
-			t.V = int(float64(t.V.(uint)) * 180 / math.Pi)
-			t.M = degrees
+		case l == 1:
+			x := m.stack[l-1]
+
+			if x.T != floater {
+				return fmt.Errorf("invalid operand x=%#v", x.V)
+			}
+
+			m.x = x
+
+			m.RemoveX(x)
+
+			n := *m.stats[sumn] // must copy value
+			m.stack[l-1] = &n
+
 			return nil
 		}
 
-		return fmt.Errorf("hex: invalid operand x=%#v", t.V)
+		return errUnderflow
 	}
 
-	return nil
-}
-
-func Radians(m *Machine) error {
-	m.mode = radians
-
-	if t := m.Top(); t != nil {
-		switch t.T {
-		case floater:
-			t.V = t.V.(float64) * math.Pi / 180
-			t.M = radians
-			return nil
-
-		case integer:
-			t.V = int(float64(t.V.(uint)) * math.Pi / 180)
-			t.M = radians
-			return nil
+	Average ExprFunc = func(m *Machine) error {
+		if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+			return errNoStats
 		}
 
-		return fmt.Errorf("hex: invalid operand x=%#v", t.V)
+		n := m.stats[sumn].V.(float64)
+		xs := m.stats[xsum].V.(float64)
+		ys := m.stats[ysum].V.(float64)
+
+		m.Push(m.makeFloatVal(ys / n))
+		m.Push(m.makeFloatVal(xs / n))
+
+		return nil
 	}
 
-	return nil
-}
+	StdDeviation ExprFunc = func(m *Machine) error {
+		if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+			return errNoStats
+		}
+
+		n := m.stats[sumn].V.(float64)
+		xs := m.stats[xsum].V.(float64)
+		ys := m.stats[ysum].V.(float64)
+		xsq := m.stats[xsqsum].V.(float64)
+		ysq := m.stats[ysqsum].V.(float64)
+
+		sdx := math.Sqrt((n*xsq - xs*xs) / (n * (n - 1)))
+		sdy := math.Sqrt((n*ysq - ys*ys) / (n * (n - 1)))
+
+		m.Push(m.makeFloatVal(sdy))
+		m.Push(m.makeFloatVal(sdx))
+
+		return nil
+	}
+
+	LinRegression ExprFunc = func(m *Machine) error {
+		if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+			return errNoStats
+		}
+
+		n := m.stats[sumn].V.(float64)
+		xs := m.stats[xsum].V.(float64)
+		ys := m.stats[ysum].V.(float64)
+		xsq := m.stats[xsqsum].V.(float64)
+		xys := m.stats[xyprod].V.(float64)
+
+		b := (xys - (xs*ys)/n) / (xsq - (xs*xs)/n)
+		a := (ys - b*xs) / n
+
+		m.Push(m.makeFloatVal(b))
+		m.Push(m.makeFloatVal(a))
+
+		return nil
+	}
+
+	LinEstimate ExprFunc = func(m *Machine) error {
+		if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+			return errNoStats
+		}
+
+		if len(m.stack) < 1 {
+			return errUnderflow
+		}
+
+		x := m.PopX()
+
+		if x.T != floater {
+			return fmt.Errorf("invalid operand %#v", x.V)
+		}
+
+		xf := x.V.(float64)
+
+		n := m.stats[sumn].V.(float64)
+		xs := m.stats[xsum].V.(float64)
+		ys := m.stats[ysum].V.(float64)
+		xsq := m.stats[xsqsum].V.(float64)
+		ysq := m.stats[ysqsum].V.(float64)
+		xys := m.stats[xyprod].V.(float64)
+
+		b := (xys - (xs*ys)/n) / (xsq - (xs*xs)/n)
+		a := (ys - b*xs) / n
+		y := b*xf + a
+		r := (xys - (xs*ys)/n) / math.Sqrt((xsq-(xs*xs)/n)*(ysq-(ys*ys)/n))
+
+		m.Push(m.makeFloatVal(r))
+		m.Push(m.makeFloatVal(y))
+
+		return nil
+	}
+
+	Degrees ExprFunc = func(m *Machine) error {
+		m.mode = degrees
+
+		if t := m.Top(); t != nil {
+			switch t.T {
+			case floater:
+				t.V = t.V.(float64) * 180 / math.Pi
+				t.M = degrees
+				return nil
+
+			case integer:
+				t.V = int(float64(t.V.(uint)) * 180 / math.Pi)
+				t.M = degrees
+				return nil
+			}
+
+			return fmt.Errorf("hex: invalid operand x=%#v", t.V)
+		}
+
+		return nil
+	}
+
+	Radians ExprFunc = func(m *Machine) error {
+		m.mode = radians
+
+		if t := m.Top(); t != nil {
+			switch t.T {
+			case floater:
+				t.V = t.V.(float64) * math.Pi / 180
+				t.M = radians
+				return nil
+
+			case integer:
+				t.V = int(float64(t.V.(uint)) * math.Pi / 180)
+				t.M = radians
+				return nil
+			}
+
+			return fmt.Errorf("hex: invalid operand x=%#v", t.V)
+		}
+
+		return nil
+	}
+)
 
 func ArithmeticShift(y, x uint) uint {
 	if x >= 64 {

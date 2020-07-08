@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/matt4biz/oak)](https://goreportcard.com/report/github.com/matt4biz/oak)
+
 # oak
 **A command-line desktop calculator for Unix**
 

@@ -43,10 +43,14 @@ func TestBinaryOp(t *testing.T) {
 		{name: "sub-f-i-oct", xt: floater, yt: integer, x: 2.0, y: uint(3), ops: []Expr{Subtract}, base: base08, want: "001"},
 		{name: "sub-i-i-oct", xt: integer, yt: integer, x: uint(2), y: uint(3), ops: []Expr{Subtract}, base: base08, want: "001"},
 
-		{name: "sub-f-f-oct-neg", xt: floater, yt: floater, x: 3.0, y: 2.0, ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
-		{name: "sub-i-f-oct-neg", xt: integer, yt: floater, x: uint(3), y: 2.0, ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
-		{name: "sub-f-i-oct-neg", xt: floater, yt: integer, x: 3.0, y: uint(2), ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
-		{name: "sub-i-i-oct-neg", xt: integer, yt: integer, x: uint(3), y: uint(2), ops: []Expr{Subtract}, base: base08, want: "01777777777777777777777"},
+		{name: "sub-f-f-oct-neg", xt: floater, yt: floater, x: 3.0, y: 2.0, ops: []Expr{Subtract}, base: base08,
+			want: "01777777777777777777777"},
+		{name: "sub-i-f-oct-neg", xt: integer, yt: floater, x: uint(3), y: 2.0, ops: []Expr{Subtract}, base: base08,
+			want: "01777777777777777777777"},
+		{name: "sub-f-i-oct-neg", xt: floater, yt: integer, x: 3.0, y: uint(2), ops: []Expr{Subtract}, base: base08,
+			want: "01777777777777777777777"},
+		{name: "sub-i-i-oct-neg", xt: integer, yt: integer, x: uint(3), y: uint(2), ops: []Expr{Subtract}, base: base08,
+			want: "01777777777777777777777"},
 
 		{name: "dist", xt: floater, yt: floater, x: 3.0, y: 4.0, ops: []Expr{Predefined("dist")}, want: "5"},
 		{name: "perc", xt: floater, yt: floater, x: 30.0, y: 4.0, ops: []Expr{Predefined("perc")}, want: "1.2"},
@@ -115,7 +119,8 @@ func TestUnaryOp(t *testing.T) {
 		{name: "log-i-hex", xt: integer, x: uint(100), ops: []Expr{Predefined("log")}, base: base16, want: "0x0002"},
 		{name: "pow-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("pow")}, base: base16, want: "0x03e8"},
 
-		{name: "not-i-bin", xt: integer, x: uint(0b01101001), ops: []Expr{Not}, base: base02, want: "0b1111111111111111111111111111111111111111111111111111111110010110"},
+		{name: "not-i-bin", xt: integer, x: uint(0b01101001), ops: []Expr{Not}, base: base02,
+			want: "0b1111111111111111111111111111111111111111111111111111111110010110"},
 		{name: "maskl", xt: integer, x: uint(3), ops: []Expr{Predefined("maskl")}, base: base16, want: "0xe000000000000000"},
 		{name: "maskr", xt: integer, x: uint(6), ops: []Expr{Predefined("maskr")}, base: base16, want: "0x003f"},
 		{name: "mask65", xt: integer, x: uint(65), ops: []Expr{Predefined("maskr")}, base: base16, want: "0xffffffffffffffff"},
@@ -226,7 +231,8 @@ func TestBitwiseOp(t *testing.T) {
 
 		{name: "shl", x: 3, y: 0b01101001, ops: []Expr{LeftShift}, want: "0b1101001000"},
 		{name: "shr", x: 3, y: 0b01101001, ops: []Expr{RightShift}, want: "0b00001101"},
-		{name: "asr", x: 3, y: 0xf000000001101001, ops: []Expr{ArithShift}, want: "0b1111111000000000000000000000000000000000001000100000001000000000"},
+		{name: "asr", x: 3, y: 0xf000000001101001, ops: []Expr{ArithShift},
+			want: "0b1111111000000000000000000000000000000000001000100000001000000000"},
 	}
 
 	for _, tt := range table {

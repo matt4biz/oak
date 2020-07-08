@@ -60,7 +60,7 @@ func (m *Machine) SaveToFile(fn string) error {
 		return fmt.Errorf("save: %w", err)
 	}
 
-	err = ioutil.WriteFile(fn, b, 0644)
+	err = ioutil.WriteFile(fn, b, 0600)
 
 	if err != nil {
 		return fmt.Errorf("save: %w", err)

@@ -10,12 +10,9 @@ oak exists because
 oak borrows a little from all these and Forth as well.
 
 ## Installation
-Run
+Clone the repo and run `make oak`.
 
-	go get github.com/matt4biz/oak/cmd/oak
-
-### Makefile
-If you build from the Makefile, the following targets are defined:
+The following targets are defined in the Makefile:
 
 	- oak          make and install the binary
 	- lint         run golangci-lint (must be installed)
@@ -23,6 +20,8 @@ If you build from the Makefile, the following targets are defined:
 	- demo         make oak and run the demo
 	- demo-test    run the demo, compare to expected output
 	- clean        clean up build/test stuff
+
+TODO - allow oak to be downloaded with `go get` (but we need the version to be set correctly)
 
 ## Usage
 oak simulates a classic stack-based RPN calculator [RPN -- reverse Polish notation -- is also known as postfix notation]. 
@@ -598,5 +597,7 @@ Here are a few possible enhancements:
 - add support for complex numbers and their functions (e.g, tanh)
 - oh, and we need a circular slide rule mode of operation, too ;-)
 
-## Bugs
-There are no open issues
+## Known Bugs
+There are no known issues.
+
+Code coverage is hovering around 70% (still need better coverage of error paths).

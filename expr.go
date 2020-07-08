@@ -6,6 +6,11 @@ import (
 	"math/bits"
 )
 
+const (
+	deg = "deg"
+	rad = "rad"
+)
+
 // Put a numerical value onto the stack.
 func Number(f float64) ExprFunc {
 	return func(m *Machine) error {
@@ -555,7 +560,9 @@ var (
 	Not = UnaryBitwiseOp("not", func(x uint) uint { return ^x })
 )
 
-func Predefined(s string) Expr {
+// Predefined returns an expression given a named function
+// or nil if the name isn't known.
+func Predefined(s string) Expr { // nolint:gocyclo
 	switch s {
 	case "abs":
 		return UnaryOp(s, math.Abs)

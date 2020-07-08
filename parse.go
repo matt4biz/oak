@@ -130,7 +130,7 @@ func (p *Parser) readTokensToNewline() (string, bool) {
 // evaluate processes actual tokens to create the expression
 // list that will be executed. For newline/comma, we return
 // a NOP so that the list is not empty until we reach EOF.
-func (p *Parser) evaluate() ([]Expr, error) {
+func (p *Parser) evaluate() ([]Expr, error) { // nolint:gocyclo
 	var (
 		result []Expr
 		e      Expr

@@ -163,10 +163,10 @@ func (m *Machine) Base() int {
 // Mode returns the current angular mode as a string.
 func (m *Machine) Mode() string {
 	if m.mode == degrees {
-		return "deg"
+		return deg
 	}
 
-	return "rad"
+	return rad
 }
 
 // Display returns the display mode and precision (digits).
@@ -255,9 +255,9 @@ func (m *Machine) makeSymbol(s string, v *Value) *Symbol {
 
 func (m *Machine) setMode(s string) {
 	switch s {
-	case "deg":
+	case deg:
 		m.mode = degrees
-	case "rad":
+	case rad:
 		m.mode = radians
 	}
 }

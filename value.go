@@ -18,7 +18,7 @@ type Value struct {
 
 // String returns a string representation of a value
 // (primarily for debugging).
-func (v Value) String() string {
+func (v Value) String() string { // nolint:gocyclo
 	switch v.T {
 	case floater:
 		// floats will always print as floats, not binary
@@ -77,7 +77,7 @@ func (v Value) String() string {
 			} else if f >= 100 && d > 1 {
 				d -= 2
 			} else if f >= 10 && d > 0 {
-				d -= 1
+				d--
 			}
 
 			// fix the sign of the exponent, since we're
@@ -144,7 +144,7 @@ func places(i uint, group, min, max int) int {
 	r := n / group
 
 	if n%group != 0 {
-		r += 1
+		r++
 	}
 
 	if r < min {

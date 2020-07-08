@@ -1,0 +1,70 @@
+# all available settings of specific linters
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+  goconst:
+    min-len: 2
+    min-occurrences: 3	
+  gocyclo:
+    min-complexity: 20
+  gofmt:
+    simplify: true
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+    local-prefixes: oak
+  gomnd:
+    settings:
+      mnd:
+        # don't include the "operation" and "assign"
+        checks: argument,case,condition,return
+        ignored-numbers: 0,1,2
+  lll:
+    line-length: 132	
+
+issues:
+  exclude-rules:
+    - linters:
+        - stylecheck
+      text: "ST1000:"
+      text: "ST1016:"
+
+# options for analysis running
+run:
+  # which dirs to skip: they won't be analyzed;
+  # can use regexp here: generated.*, regexp is applied on full path;
+  # default value is empty list, but next dirs are always skipped independently
+  # from this option's value:
+  #   	vendor$, third_party$, testdata$, examples$, Godeps$, builtin$
+  skip-dirs:
+    - docs
+    - node_modules  # not go, but don't spend time searching it
+
+  # include test files
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - maligned
+    - misspell
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck

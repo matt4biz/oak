@@ -34,7 +34,7 @@ func lexComment(l *Scanner) stateFn {
 }
 
 // lexAny scans non-space items.
-func lexAny(l *Scanner) stateFn {
+func lexAny(l *Scanner) stateFn { // nolint:gocyclo
 	r := l.next()
 	// fmt.Fprintf(os.Stderr, "state: get %q\n", r)
 

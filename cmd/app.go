@@ -47,7 +47,6 @@ type app struct {
 	stdOut  io.Writer
 	errOut  io.Writer
 	version string
-	debug   bool
 	fn      string
 	config  string
 	input   string
@@ -58,6 +57,7 @@ type app struct {
 	demo    bool
 	radians bool
 	show    bool
+	debug   bool
 }
 
 // fromArgs reads the flags and updates the app accordingly.
@@ -113,7 +113,7 @@ func (a *app) run() error {
 
 	if a.image != "" {
 		if err := a.machine.LoadFromFile(a.image); err != nil {
-			return fmt.Errorf("image: %s\n", err)
+			return fmt.Errorf("image: %s", err)
 		}
 	}
 
@@ -231,17 +231,18 @@ func (a *app) fromInput(w io.Writer, r io.ReadCloser) error {
 			fmt.Fprintln(a.stdOut, ">", strings.TrimRight(s, "\n"))
 		}
 
-		if i, err := a.machine.Eval(il, e); err != nil {
+		i, err := a.machine.Eval(il, e)
+
+		if err != nil {
 			if err == io.EOF {
 				return nil
 			}
 
 			fmt.Fprintln(w, err)
 			return err
-		} else {
-			fmt.Fprintf(w, "%d: %v\n", il, i)
 		}
 
+		fmt.Fprintf(w, "%d: %v\n", il, i)
 		il++
 	}
 

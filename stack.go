@@ -78,30 +78,38 @@ type Expr interface {
 	Eval(m *Machine) error
 }
 
+// ExprFunc is a function on the machine state
+// (mainly a function from stack -> stack).
 type ExprFunc func(m *Machine) error
 
+// Eval allows an ExprFunc to be an Expr without
+// needing any other object (e.g., a struct).
 func (e ExprFunc) Eval(m *Machine) error {
 	return e(m)
 }
 
-// New returns a new stack-based machine with an empty
-// stack.
+// New returns a new stack-based machine
+// with an empty stack.
 func New(o io.Writer) *Machine {
 	m := Machine{
 		digits: 2,
 		vars:   make(map[string]*Symbol, 1024),
-		words:  make(map[string]*Word),
+		words:  make(map[string]*Word, 1024),
 		output: o,
 	}
 
-	m.SetBuiltins()
+	m.setBuiltins()
 	return &m
 }
 
+// SetInteractive indicates we're running with
+// readline input.
 func (m *Machine) SetInteractive() {
 	m.inter = true
 }
 
+// SetDebugging indicates the machine should
+// generate debugging output while evaluating.
 func (m *Machine) SetDebugging() {
 	m.debug = true
 }
@@ -138,6 +146,7 @@ func (m *Machine) Eval(line int, exprs []Expr) (interface{}, error) {
 	return t.String(), nil
 }
 
+// Base returns the current base as an int.
 func (m *Machine) Base() int {
 	switch m.base {
 	case base02:
@@ -151,6 +160,7 @@ func (m *Machine) Base() int {
 	return 10
 }
 
+// Mode returns the current angular mode as a string.
 func (m *Machine) Mode() string {
 	if m.mode == degrees {
 		return "deg"
@@ -159,6 +169,7 @@ func (m *Machine) Mode() string {
 	return "rad"
 }
 
+// Display returns the display mode and precision (digits).
 func (m *Machine) Display() string {
 	switch m.disp {
 	case fixed:
@@ -172,6 +183,8 @@ func (m *Machine) Display() string {
 	return "free"
 }
 
+// SetOptions takes an options map (e.g., from a config
+// file) and adjusts the machines settings.
 func (m *Machine) SetOptions(o map[string]string) {
 	if mode, ok := o["trig_mode"]; ok {
 		m.setMode(mode)

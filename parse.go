@@ -11,6 +11,9 @@ import (
 	"oak/token"
 )
 
+// Parser takes tokens returned by its scanner and evaluates
+// them into expression units that can be evaluated (or, for
+// word definitions, it builds the word for later compilation).
 type Parser struct {
 	machine *Machine
 	scanner *Scanner
@@ -39,14 +42,20 @@ func NewParser(m *Machine, s *Scanner, w io.Writer, line int, debug bool) *Parse
 	return &p
 }
 
-// WordParser returns a new parser with tokens from a word definition;
-// it cannot scan for more tokens.
+// WordParser returns a new parser with tokens from a word
+// definition; it cannot scan for more tokens.
 func WordParser(m *Machine, t []token.Token) *Parser {
+	var line int
+
+	if len(t) > 0 {
+		line = t[len(t)-1].Line
+	}
+
 	p := Parser{
 		machine: m,
 		tokens:  t,
 		w:       m.output,
-		line:    t[0].Line,
+		line:    line,
 		base:    m.Base(),
 		debug:   m.debug,
 		compile: true,
@@ -129,8 +138,21 @@ func (p *Parser) evaluate() ([]Expr, error) {
 	)
 
 	for _, t := range p.tokens {
+		// if we're picking up a word definition we just
+		// collect the tokens and interpret them later,
+		// so we avoid the main switch statement
+
 		if p.word != nil {
-			p.word.T = append(p.word.T, t)
+			// don't append empty tokens, they make the
+			// listing of the word look funny
+
+			if t.Type != token.Newline {
+				p.word.T = append(p.word.T, t)
+			}
+
+			// if we get to the semicolon, we're done
+			// so let's try to compile & install it;
+			// there will be no expression for it now
 
 			if t.Type == token.Semicolon {
 				if err := p.word.Compile(p.machine); err != nil {
@@ -172,6 +194,7 @@ func (p *Parser) evaluate() ([]Expr, error) {
 
 				// we need to allow binary input in the middle
 				// of an input line when there's a mode change
+
 				p.checkForBaseChange(t.Text)
 			}
 
@@ -184,15 +207,23 @@ func (p *Parser) evaluate() ([]Expr, error) {
 		case token.Colon:
 			p.word = new(Word)
 			p.word.T = append(p.word.T, t)
-			e = nil
+
+			e = nil // avoid duplicating last word!
 
 		case token.Comma, token.Newline, token.Comment:
-			e = Nop
+			e = Nop // avoid early EOF from whitespace
 		}
 
 		if e != nil {
 			result = append(result, e)
 		}
+	}
+
+	// if we're in the middle of a word definition
+	// return NOP so we don't think we're at EOF
+
+	if len(result) == 0 && p.word != nil {
+		return []Expr{Nop}, nil
 	}
 
 	return result, nil

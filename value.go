@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+// Value represents something that can be on the stack or
+// in a variable: number (float or int), string, symbol.
 type Value struct {
 	T tag         `json:"tag"`
 	M mode        `json:"mode"`
@@ -14,6 +16,8 @@ type Value struct {
 	m *Machine
 }
 
+// String returns a string representation of a value
+// (primarily for debugging).
 func (v Value) String() string {
 	switch v.T {
 	case floater:
@@ -130,6 +134,10 @@ func (v Value) String() string {
 	return "<nil>"
 }
 
+// places is used to see how many digits we need to
+// print for integers (including some minimum number
+// which is determined by the base), given how many
+// bits are valid.
 func places(i uint, group, min, max int) int {
 	n := bits.Len(i)
 

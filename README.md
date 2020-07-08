@@ -235,6 +235,8 @@ Variables have two forms
 		> $name@+
 		4: 8
 
+	There is no way to delete user-defined variables at this time.
+
 ## Operations
 
 oak offers the following floating-point binary operators:
@@ -384,22 +386,41 @@ If you save the state of the machine with "save", that state includes
 
 - the stack
 - the "last x" value
-- all user-defined variables, but not result variables
-- all user-defined words (when we have that capability)
+- all user-defined variables (but not result variables)
+- all user-defined words
+- the stats registers, if defined
+- the angular mode, display mode & digits, and base
 
 Loading state with "load" overwrites all existing machine state except result variables.
 
 ## User-defined functions (words)
-TODO: allow the creation of user-defined words (a la Forth), for example
+oak allows the user to define simple words using a Forth-like syntax, for example:
 
 	: name op op ... ;
 
-where the name may then be used as a function operating against the stack. 
-Note that there is no declaration of parameter numbers or types.
+where the name may then be used as a function operating against the stack. The name must be a valid identifier (not a number) and the definition must include at least one operation (even if that is just a number, such as a word defining a new constant).
 
-Also, it will not be possible to allow result vars (`$1`, etc.) to be
-used in words; we'll need to store the elements as tokens to allow
-the state to be written out / loaded back in.
+By "simple" we mean that there is not yet any way to specify conditional logic or iteration; the operations in the definition will be executed sequentially. 
+As such, user-defined words are essentially macros.
+Note that there is no declaration of the numbers or types of parameters, nor any embedded comment.
+
+In interactive mode (using readline), the entire macro definition must fit on one line.
+
+The word definition may include references to user-defined variables. These are not checked until the word is executed, so runtime errors may occur if one is not defined in the machine then.
+
+Also, user-defined words are not allowed to reference result variables (e.g., `$1`) in their definitions, as these only exist on a per-session basis.
+
+For example, we can create a macro to calculate decibels (dB)
+
+	> :dB log 10*;
+	1: <nil>
+	> 4 dB
+	2: 6.021
+
+Note that we can create and use a definition on the same line, as in
+
+	> :dB log 10*; 4 dB
+	1: 6.021
 
 ## Statistics operations
 oak can calculate basic statistics on one or two variables, as well as perform linear regression and calculate the correlation coefficient.
@@ -569,11 +590,12 @@ Also, certain command-line options override the options set in the configuration
 ## To do
 Here are a few possible enhancements:
 
-- add support for complex numbers and their functions (e.g, tanh)
 - vector operations
 - string functions (really?)
+- logic & iteration in user-defined words
+- allow user-defined variables to be deleted
 - interest-rate calculations, similar to the HP 12c
-- user-defined words (a la Forth), along with logic & iteration
+- add support for complex numbers and their functions (e.g, tanh)
 - oh, and we need a circular slide rule mode of operation, too ;-)
 
 ## Bugs

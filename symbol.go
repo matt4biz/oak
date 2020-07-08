@@ -10,6 +10,7 @@ type Symbol struct {
 	readonly bool
 }
 
+// String returns a string representation of a symbol.
 func (s Symbol) String() string {
 	if s.V == nil {
 		return fmt.Sprintf("{S:%s, V:<nil> rslt=%t, read=%t}", s.S, s.result, s.readonly)
@@ -28,6 +29,8 @@ func (m *Machine) Lookup(s string) *Symbol {
 	return m.vars[s]
 }
 
+// Builtin returns a built-in operation matching the name
+// if known, otherwise an error.
 func (m *Machine) Builtin(s string) (Expr, error) {
 	b, ok := m.builtin[s]
 

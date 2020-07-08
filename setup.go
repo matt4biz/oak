@@ -75,9 +75,6 @@ var (
 	}
 
 	ClearAll ExprFunc = func(m *Machine) error {
-		// TODO - clear other non-stack registers
-		//   when are defined, e.g. for statistics
-
 		m.stack = nil
 		m.vars = make(map[string]*Symbol)
 		m.x = nil
@@ -92,9 +89,6 @@ var (
 	}
 
 	ClearRegs ExprFunc = func(m *Machine) error {
-		// TODO - clear other non-stack registers
-		//   when are defined, e.g. for statistics
-
 		m.x = nil
 		m.clearStats()
 		return nil
@@ -397,7 +391,7 @@ var (
 	}
 )
 
-func (m *Machine) SetBuiltins() {
+func (m *Machine) setBuiltins() {
 	m.builtin = map[string]Expr{
 		// CONSTANTS
 

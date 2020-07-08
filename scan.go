@@ -75,22 +75,24 @@ func (l *Scanner) Next() token.Token {
 	return token.Token{Type: token.EOF, Line: l.pos, Text: "EOFToken"}
 }
 
+// Line returns the current input line as a string for
+// demo mode.
 func (l *Scanner) Line() string {
 	return l.input
 }
 
 const eof = -1
 
-// stateFn represents the state of the scanner as a function that returns the next state.
+// stateFn represents the state of the scanner as a
+// function that returns the next state.
 type stateFn func(*Scanner) stateFn
 
-// loadLine reads the next line of input and stores it in (appends it to) the input.
-// (l.input may have data left over when we are called.)
-// It strips carriage returns to make subsequent processing simpler.
+// loadLine reads the next line of input and stores it
+// in (appends it to) the input (l.input may have data
+// left over when we are called).
 //
-//
-// NOTE: we'll need to tie this into the readline stuff ... or maybe we just
-// make a scanner for each line by itself?
+// It strips carriage returns to make subsequent processing
+// simpler.
 func (l *Scanner) loadLine() {
 	l.buf = l.buf[:0]
 

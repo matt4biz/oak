@@ -60,11 +60,6 @@ func gauss(f func(float64) (float64, error), a, b float64) (s float64, err error
 		return 0, errImproper
 	}
 
-	if x, _ := g(0); math.IsNaN(x) || math.IsInf(x, -1) || math.IsInf(x, 1) {
-		fmt.Println("g=", x)
-		return 0, fmt.Errorf("improper integral (conv)")
-	}
-
 	for _, l := range legendre {
 		y, err := g(l.x)
 

@@ -311,12 +311,15 @@ and these statistics functions
 
 along with these advance math functions taking a word as a function
 
-	integr calculate the definite integral of the function (word) x from y to z
-	       {z,y,x} -> x
-	solve  find a root of the function (word) x in the interval [y,z]
-	       {z,y,x} -> x
+	integr calculate the definite integral of the function (word) x from a to b
+	       {a,b,x} -> x      [a,b are in the z,y registers]
+	solve  find a root of the function (word) x in the interval [a,b]
+	       {a,b,x} -> x      [a,b are in the z,y registers]
 	ddx    differentiate the function (word) x at the point y
 	       {y,x}   -> x
+	
+	gaussl calculate the definite integral using Gauss-Legendre
+	rombrg calculate the definite integral using Romberg (possibly adapted)
 
 and these bitwise unary functions
 
@@ -516,7 +519,7 @@ The statitics registers used to sum these variables may be accessed as variables
 These special variables only exist when the statistic registers have data. They are read-only, so they can be read with `@` but not written with `!`.
 
 ## Advanced mathematics
-oak can calculate numerical derivatives, integrals, and find roots of a function. For details of the algorithms used, see *Numerical Analysis, third ed.* by Timothy Sauer (ISBN [9780134696454](https://www.amazon.com/Numerical-Analysis-3rd-Timothy-Sauer/dp/013469645X)).
+oak can calculate numerical derivatives and integrals and find roots of a function. For details of the algorithms used, see *Numerical Analysis, third ed.* by Timothy Sauer (ISBN [9780134696454](https://www.amazon.com/Numerical-Analysis-3rd-Timothy-Sauer/dp/013469645X)).
 
 Each of these methods takes a word representing a function and one or two numbers. In all cases, the given word represents a real-valued function in one variable. It will be given a value on the stack and be expected to return its result on the stack.
 
@@ -535,7 +538,7 @@ For example, given `f(x) = e**x`, calculate the derivative at 0 and 1
 	3: 2.71828
 
 ### Integrals
-The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It uses Gaussian quadrature with a 7th-order Legendre polynomial over [-1,1] by adapting the original function [*Sauer* §5.5].
+The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It uses Gaussian quadrature with a 7th-order Legendre polynomial over [-1,1] by adapting the original function [*Sauer* §5.5]. If that fails, it uses Romberg integration [*Sauer* §5.3] with a hack if needed to attempt to handle integrals which are improper at one endpoint or the other.
 
 For example, given `f(x) = e**x`, calculate the definite integral over [0,2]
 
@@ -550,25 +553,37 @@ where the value of the integral is `e**2 - 1` (shown for comparison).
 
 The lower bound of the interval must always be pushed onto the stack first, followed by the upper bound and then the word.
 
-**NOTE** that this method of numerical integration will not work for some functions that do not behave well in the interval [-1,1], such as the reciprocal function `f(x) = 1/x` and the natural log `f(x) = ln x`. `integr` will attempt to find cases where the function (or the adapted function shifted to [-1, 1]) cannot evaluate at *x* = 0 and signal them with the error "improper integral".
+**NOTE** that the results may be quite off for improper integrals or functions which oscillate wildly in the given interval. Unfortunately, it's just not possible for a calculator to handle all cases, and indeed the user should understand the problem being posed and not blindly trust the machine. See William Kahan's great article "Handheld calculator evaluates integrals", [*Hewlett-Packard Journal* 31:8](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1980-08.pdf) (Aug 1980), pp. 23-32.
 
-For example,
+The two methods may be used by themselves by invoking `gaussl` or `rombrg` in exactly the same way; it is the Gaussian procedure which will most likely report an error if it considers the integral to be improper.
 
-	> :f 1+ ln;
+For example, the logarithm and reciprocal functions starting at 0 are improper:
+
+	> :f ln;
 	1: <nil>
-	> 0 1 $f integr
-	2: 0.38629436112191234
-	> -2 -1 $f integr
+	> 0 1 $f gaussl
 	improper integral
+	> 0 1 $f rombrg
+	3: -1.0000005786329074
+	> 5 fix
+	4: -1.00000
+	> :g recp;
+	5: -1.00000
+	> 0 1 $g gaussl
+	improper integral
+	> 0 1 $g rombrg
+	7: 36308168.95462
 
-To handle these cases better we'll need to do adaptive quadrature, such as the Gauss-Konrod algorithm.
+where the last result is headed to +Inf.
+
+The Romberg method will run until the difference between successive estimates is less than *eps* = 1e-15 (or until it runs over a fixed limit on the number of iterations allowed, currently 24).
 
 ### Root finding
 The function `solve` takes a function `f(x)` represented as a word as well as an interval [a, b] and attempts to find a root within that interval.
 
 It uses two methods, the secant method [*Sauer* §1.5] and, if that is not successful, the Newton-Raphson method [*Sauer* §1.4]. Either one may fail for certain cases (for example, Newton's method may oscillate between two roots without converging), but one of them should work in most cases. 
 
-Both methods iterate until the difference between two estimates is less than *e* = 1e-9 (or until they run over a fixed limit on the number of iterations allowed, currently 100).
+Both methods iterate until the difference between two successive estimates is less than *eps* = 1e-15 (or until they run over a fixed limit on the number of iterations allowed, currently 100).
 
 If no root is found within the given interval, `solve` will return "no solution".
 
@@ -593,6 +608,8 @@ The lower bound of the interval must always be pushed onto the stack first, foll
 
 	> -5 0 $g solve
 	no solution
+
+See also William Kahan's article "Personal calculator has key to solve any equation f(x) = 0", [*Hewlett-Packard Journal* 30:12](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1979-12.pdf) (Dec 1979), pp. 20-26.
 
 ## Functions on strings
 TODO

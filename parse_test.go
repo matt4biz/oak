@@ -231,9 +231,9 @@ var parseTests = []parseTest{
 		want:  []string{"1.0858533"},
 	},
 	{
-		name:  "failed-integrate",
-		input: `7 fix :f recp; 0 1 $f integr`,
-		fail:  "improper integral",
+		name:  "backup-integrate",
+		input: `2 sci :f recp; 0 1 $f integr`,
+		want:  []string{"3.63e+07"},
 	},
 	{
 		name:  "ddx",

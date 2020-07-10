@@ -455,7 +455,10 @@ func (m *Machine) setBuiltins() {
 		// ADVANCED MATH
 
 		"ddx":    RunDDX,
-		"integr": RunGauss,
+		"integr": RunIntegrate,
 		"solve":  RunSolve,
+
+		"gaussl": RunGauss,
+		"rombrg": RunRomberg,
 	}
 }

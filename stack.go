@@ -253,6 +253,10 @@ func (m *Machine) makeSymbol(s string, v *Value) *Symbol {
 	return &Symbol{S: s, V: v, readonly: true}
 }
 
+func (m *Machine) makeWord(w *Word) Value {
+	return Value{T: word, V: w}
+}
+
 func (m *Machine) setMode(s string) {
 	switch s {
 	case deg:

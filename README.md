@@ -9,7 +9,7 @@ oak exists because
 - `bc` and similar programs use infix notation, not RPN
 - `apl` is all that, and requires a special keyboard too
 
-oak borrows a little from all these and Forth as well.
+oak borrows a little from all these as well as Forth and PostScript.
 
 ## Installation
 Clone the repo and run `make oak`.
@@ -309,6 +309,15 @@ and these statistics functions
 	comb   {y,x} -> x = combinations of y items x at a time
 	perm   {y,x} -> x = permutations of y items x at a time
 
+along with these advance math functions taking a word as a function
+
+	integr calculate the definite integral of the function (word) x from y to z
+	       {z,y,x} -> x
+	solve  find a root of the function (word) x in the interval [y,z]
+	       {z,y,x} -> x
+	ddx    differentiate the function (word) x at the point y
+	       {y,x}   -> x
+
 and these bitwise unary functions
 
 	maskl  {x}   -> x = ^0 << (64-x), ^0 if x > 64  [left mask]
@@ -423,6 +432,8 @@ Note that we can create and use a definition on the same line, as in
 	> :dB log 10*; 4 dB
 	1: 6.021
 
+Also, a word may be used as a symbol by prefixing it with a dollar sign `$`. This is necessary when using a word as an argument to another operation, such as the advanced math operations (see below).
+
 ## Statistics operations
 oak can calculate basic statistics on one or two variables, as well as perform linear regression and calculate the correlation coefficient.
 
@@ -503,6 +514,85 @@ The statitics registers used to sum these variables may be accessed as variables
 	$r_7   ∑ xy
 
 These special variables only exist when the statistic registers have data. They are read-only, so they can be read with `@` but not written with `!`.
+
+## Advanced mathematics
+oak can calculate numerical derivatives, integrals, and find roots of a function. For details of the algorithms used, see *Numerical Analysis, third ed.* by Timothy Sauer (ISBN [9780134696454](https://www.amazon.com/Numerical-Analysis-3rd-Timothy-Sauer/dp/013469645X)).
+
+Each of these methods takes a word representing a function and one or two numbers. In all cases, the given word represents a real-valued function in one variable. It will be given a value on the stack and be expected to return its result on the stack.
+
+These operations leave the "last x" register unchanged.
+
+### Derivatives
+The function `ddx` will calculate the derivative `f'(x)` of a function `f` represented as a word using a three-point finite-difference approximation [*Sauer* §5.1], with *h* = 1e-5.
+
+For example, given `f(x) = e**x`, calculate the derivative at 0 and 1
+
+	> 5 fix :f exp;
+	1: <nil>
+	> 0 $f ddx
+	2: 1.00000
+	> 1 $f ddx
+	3: 2.71828
+
+### Integrals
+The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It uses Gaussian quadrature with a 7th-order Legendre polynomial over [-1,1] by adapting the original function [*Sauer* §5.5].
+
+For example, given `f(x) = e**x`, calculate the definite integral over [0,2]
+
+	> :f exp;
+	1: <nil>
+	> 0 2 $f integr
+	2: 6.389056098930648
+	> 2 exp 1-
+	3: 6.38905609893065
+
+where the value of the integral is `e**2 - 1` (shown for comparison).
+
+The lower bound of the interval must always be pushed onto the stack first, followed by the upper bound and then the word.
+
+**NOTE** that this method of numerical integration will not work for some functions that do not behave well in the interval [-1,1], such as the reciprocal function `f(x) = 1/x` and the natural log `f(x) = ln x`. `integr` will attempt to find cases where the function (or the adapted function shifted to [-1, 1]) cannot evaluate at *x* = 0 and signal them with the error "improper integral".
+
+For example,
+
+	> :f 1+ ln;
+	1: <nil>
+	> 0 1 $f integr
+	2: 0.38629436112191234
+	> -2 -1 $f integr
+	improper integral
+
+To handle these cases better we'll need to do adaptive quadrature, such as the Gauss-Konrod algorithm.
+
+### Root finding
+The function `solve` takes a function `f(x)` represented as a word as well as an interval [a, b] and attempts to find a root within that interval.
+
+It uses two methods, the secant method [*Sauer* §1.5] and, if that is not successful, the Newton-Raphson method [*Sauer* §1.4]. Either one may fail for certain cases (for example, Newton's method may oscillate between two roots without converging), but one of them should work in most cases. 
+
+Both methods iterate until the difference between two estimates is less than *e* = 1e-9 (or until they run over a fixed limit on the number of iterations allowed, currently 100).
+
+If no root is found within the given interval, `solve` will return "no solution".
+
+For example, given the function `f(x) = x**2 + x - 1`, find a root between 0 and 2
+
+	> :g dup sqr + 1-;
+	1: <nil>
+	> 2 g
+	2: 5
+	> 3 g
+	3: 11
+	> 0 2 $g solve
+	4: 0.6180339887498949
+	> -1 0 $g solve
+	no solution
+	> -3 -1 $g solve
+	5: -1.618033988749895
+
+The lower bound of the interval must always be pushed onto the stack first, followed by the upper bound and then the word.
+
+**NOTE** that sometimes this method will fail to find a solution within the interval if it is attracted to another root nearby. This happens in the example when we use the interval [-5, 0], but not when we exclude 0 (as with the interval [-3, -1]).
+
+	> -5 0 $g solve
+	no solution
 
 ## Functions on strings
 TODO

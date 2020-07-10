@@ -451,5 +451,11 @@ func (m *Machine) setBuiltins() {
 		"sdev": StdDeviation,
 		"line": LinRegression,
 		"estm": LinEstimate,
+
+		// ADVANCED MATH
+
+		"ddx":    RunDDX,
+		"integr": RunGauss,
+		"solve":  RunSolve,
 	}
 }

@@ -109,3 +109,10 @@ func (m *Machine) Word(s string) Expr {
 
 	return w
 }
+
+func WordRef(w *Word) ExprFunc {
+	return func(m *Machine) error {
+		m.Push(m.makeWord(w))
+		return nil
+	}
+}

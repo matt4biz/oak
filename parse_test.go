@@ -11,6 +11,7 @@ type parseTest struct {
 	input string
 	want  []string // one for each line
 	err   string
+	fail  string
 }
 
 func (st parseTest) run(t *testing.T) {
@@ -39,7 +40,9 @@ func (st parseTest) run(t *testing.T) {
 
 			// we got our error, so we're done
 			return
-		} else if st.err != "" {
+		}
+
+		if st.err != "" {
 			t.Fatalf("expected err=%s, didn't get it", st.err)
 		}
 
@@ -50,7 +53,16 @@ func (st parseTest) run(t *testing.T) {
 		top, err := m.Eval(i+1, got)
 
 		if err != nil {
-			t.Errorf("couldn't eval %v: %s", got, err)
+			if st.fail != err.Error() {
+				t.Fatalf("couldn't eval %v: %s", got, err)
+			}
+
+			// we got our error, so we're done
+			return
+		}
+
+		if st.fail != "" {
+			t.Fatalf("expected fail=%s, didn't get it", st.fail)
 		} else {
 			t.Logf("eval[%d] = %v", i, top)
 		}
@@ -202,6 +214,31 @@ var parseTests = []parseTest{
 		name:  "stats-correction",
 		input: `2 fix 4.63 0 ∑+, 4.78 20 ∑+, 6.61 40 ∑+, 7.21 60 ∑+, 7.78 80 ∑+, 4.78 20 ∑-, 5.78 20 ∑+, mean, swap`,
 		want:  []string{"1.00", "2.00", "3.00", "4.00", "5.00", "4.00", "5.00", "40.00", "6.40"},
+	},
+	{
+		name:  "simple-solve",
+		input: `:f 2/ 1-; -1 2 $f solve`,
+		want:  []string{"2"},
+	},
+	{
+		name:  "solve",
+		input: `7 fix :g dup dup dup * * + 1-; -1 1 $g solve`,
+		want:  []string{"0.6823278"},
+	},
+	{
+		name:  "integrate",
+		input: `7 fix :g dup * -2/ exp; 0 1.5 $g integr`,
+		want:  []string{"1.0858533"},
+	},
+	{
+		name:  "failed-integrate",
+		input: `7 fix :f recp; 0 1 $f integr`,
+		fail:  "improper integral",
+	},
+	{
+		name:  "ddx",
+		input: `4 fix :f recp; 2 $f ddx`,
+		want:  []string{"-0.2500"},
 	},
 	{
 		name:  "bitwise-xor",

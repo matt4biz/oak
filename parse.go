@@ -351,12 +351,27 @@ var (
 
 func (p *Parser) symbol(s string) (Expr, error) {
 	if resultVar.MatchString(s) {
+		// if we're in a word definition, disallow
+		// result variables (TODO - what about $0)
+
 		if p.compile {
 			return nil, fmt.Errorf("invalid result var %s", s)
 		}
 
+		// this actually evaluates the value now
+
 		return GetSymbol(s), nil
 	}
+
+	// if it's a word preceded by $, add it as a
+	// symbol so it's not execute yet
+
+	if w := p.machine.Word(s[1:]); w != nil {
+		return WordRef(w.(*Word)), nil
+	}
+
+	// always treat a user-defined variable as a
+	// symbol because it requires store/recall ops
 
 	if userVar.MatchString(s) {
 		return GetUserVar(s), nil
@@ -369,6 +384,9 @@ func (p *Parser) identifier(s string) (Expr, error) {
 	if e := Predefined(s); e != nil {
 		return e, nil
 	}
+
+	// a word without a preceding $ is treated
+	// as a predefined/built-in op: call it now
 
 	if w := p.machine.Word(s); w != nil {
 		return w, nil

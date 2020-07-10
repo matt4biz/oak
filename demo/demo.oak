@@ -47,5 +47,10 @@ swap
 swap
 # demonstrate a simple macro definition
 :dB log 10*; 4 dB
+# show numerical differentiation and integration
+# f(x) = 2x^2; f'(x) = 4x, F(x) = 2x^3 / 3
+:f dup * 2*;
+0 2 $f integr
+2 $f ddx
 # and we're done for now
 bye

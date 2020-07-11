@@ -301,7 +301,8 @@ and these statistics functions
 	sum    {y,x} -> y=y, x=n++  [n = # of data pts, same as ∑+]
 	
 	mean   push y = mean(y), x = mean(x)
-	sdev   push y = stdev(y), x = stdev(x) [sample std dev]
+	stdev  push y = stdev(y), x = stdev(x)    [sample std dev]
+	sterr  push y = stderr(y), x = stderr(x)  [std error of mean]
 	line   push y = slope, x = intercept
 
 	estm   {x}   -> push y = corr coefficient, x = estimated y
@@ -444,13 +445,13 @@ The `sum` command is used to enter data points one at a time (or one pair of y,x
 
 As an alternative, you can use the operators `∑+` (`sum`) and `∑-` (where the latter removes a data point; there is no similar named function).
 
-Given some number of data points, `mean` calculates the mean (average) and `sdev` the _sample_ standard deviation.
+Given some number of data points, `mean` calculates the mean (average) and `stdev` the _sample_ standard deviation.
 
 Given some number of data points in two variables, `line` calculates the linear regression _y = ax+b_, leaving the intercept _b_ in the _x_ register and the slope _a_ in the _y_ register.
 
 Given some number of data points in two variables, `estm` calculates an estimated _y_ value for a given _x_, leaving the estimated _y_ in the x register, and the correlation coefficient _r_ in the _y_ register (yes, we know it's confusing :-).
 
-The functions `mean`, `sdev`, `line`, and `estm` push new {y,x} pairs onto the stack (older data on the stack is pushed underneath). Note that of these functions only `estm` takes a value from the stack (the input _x_ value).
+The functions `mean`, `stdev`, `sterr`, `line`, and `estm` push new {y,x} pairs onto the stack (older data on the stack is pushed underneath). Note that of these functions only `estm` takes a value from the stack (the input _x_ value).
 
 For example, given the following problem
 
@@ -481,7 +482,7 @@ from which we may calculate
 	6: 40.00
 	> swap
 	7: 6.40
-	> sdev
+	> stdev
 	8: 31.62
 	> swap
 	9: 1.24

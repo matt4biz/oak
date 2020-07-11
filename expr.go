@@ -403,6 +403,28 @@ var (
 		return nil
 	}
 
+	StdError ExprFunc = func(m *Machine) error {
+		if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
+			return errNoStats
+		}
+
+		n := m.stats[sumn].V.(float64)
+		xs := m.stats[xsum].V.(float64)
+		ys := m.stats[ysum].V.(float64)
+		xsq := m.stats[xsqsum].V.(float64)
+		ysq := m.stats[ysqsum].V.(float64)
+
+		sdx := math.Sqrt((n*xsq - xs*xs) / (n * (n - 1)))
+		sdy := math.Sqrt((n*ysq - ys*ys) / (n * (n - 1)))
+		erx := sdx / math.Sqrt(n)
+		ery := sdy / math.Sqrt(n)
+
+		m.Push(m.makeFloatVal(ery))
+		m.Push(m.makeFloatVal(erx))
+
+		return nil
+	}
+
 	LinRegression ExprFunc = func(m *Machine) error {
 		if m.stats == nil || m.stats[sumn].V == nil || m.stats[sumn].V.(float64) == 0 {
 			return errNoStats

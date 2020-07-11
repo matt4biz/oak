@@ -446,11 +446,12 @@ func (m *Machine) setBuiltins() {
 
 		// STATS
 
-		"sum":  StatsOpAdd,
-		"mean": Average,
-		"sdev": StdDeviation,
-		"line": LinRegression,
-		"estm": LinEstimate,
+		"sum":   StatsOpAdd,
+		"mean":  Average,
+		"stdev": StdDeviation,
+		"sterr": StdError,
+		"line":  LinRegression,
+		"estm":  LinEstimate,
 
 		// ADVANCED MATH
 

@@ -37,7 +37,7 @@ $0+
 mean
 swap
 # get the std deviation {x, y}
-sdev
+stdev
 swap
 # compute the line y=ax+b {b,a}
 line

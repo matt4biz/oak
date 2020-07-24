@@ -1,3 +1,2 @@
 language = "go"
-run = "go run ./cmd/oak.go"
-
+run = "go run ./cmd"

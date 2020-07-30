@@ -179,7 +179,8 @@ func integrate(f func(float64) (float64, error), a, b float64) (float64, error) 
 	return i, err
 }
 
-// ddx uses the three-point approximation to finding the derivative.
+// ddx uses a three-point centered-difference approximation to find
+// the derivative. See Sauer 3rd ed., section 5.1.
 func ddx(f func(float64) (float64, error), x float64) (float64, error) {
 	const h = 1e-5
 
@@ -196,6 +197,44 @@ func ddx(f func(float64) (float64, error), x float64) (float64, error) {
 	}
 
 	return (y1 - y2) / (2 * h), nil
+}
+
+// d2dx uses a five-point centered-difference approximation to find
+// the second derivative.
+func d2dx(f func(float64) (float64, error), x float64) (float64, error) {
+	const h = 1e-3 // must be smaller, as it will be squared
+
+	y0, err := f(x - 2*h)
+
+	if err != nil {
+		return 0, err
+	}
+
+	y1, err := f(x - h)
+
+	if err != nil {
+		return 0, err
+	}
+
+	y2, err := f(x)
+
+	if err != nil {
+		return 0, err
+	}
+
+	y3, err := f(x + h)
+
+	if err != nil {
+		return 0, err
+	}
+
+	y4, err := f(x + 2*h)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return (-y0 + 16*y1 - 30*y2 + 16*y3 - y4) / (12 * h * h), nil
 }
 
 // newton uses the Newton-Raphson method to find a root.
@@ -292,7 +331,8 @@ func solve(f func(float64) (float64, error), a, b float64) (x float64, err error
 }
 
 var (
-	RunDDX = UnaryMathFunc("ddx", ddx)
+	RunDDX  = UnaryMathFunc("ddx", ddx)
+	RunD2DX = UnaryMathFunc("d2dx", d2dx)
 
 	RunIntegrate = BinaryMathFunc("integr", integrate)
 	RunSolve     = BinaryMathFunc("solve", solve)

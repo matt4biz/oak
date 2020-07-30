@@ -338,8 +338,11 @@ as well as these operations on the stack / machine
 	clr    reset top of stack (x register) to 0
 	clrall reset everything: stack, last x, variables
 	clrreg reset all non-stack registers (for now, "last x")
-	clrstk reset the entire stack to empty
-	clrvar reset the variable memory (user-defined and results)
+	       along with the statistics accumulating registers
+	clrstk reset the entire stack to empty along with the
+	       statistics accumulating registers
+	clrvar reset the variable memory (both user-defined and 
+	       results variables)
 	depth  push the existing stack depth onto it
 	       {w,z,y,x} -> {z,y,x,#}
 	dump   display the stack & variables, leave stack unchanged
@@ -538,6 +541,19 @@ For example, given `f(x) = e**x`, calculate the derivative at 0 and 1
 	> 1 $f ddx
 	3: 2.71828
 
+Similarly, `d2dx` calculates the 2nd derivative `f''(x)` using a five-point finite difference scheme with *h* = 1e-3.
+
+For example, 
+
+	> 8 fix :f exp;
+	1: <nil>
+	> 1 $f d2dx
+	2: 2.71828183
+	> :g recp;
+	3: 2.71828183
+	> 2 $g d2dx
+	4: 0.25000000
+
 ### Integrals
 The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It uses Gaussian quadrature with a 7th-order Legendre polynomial over [-1,1] by adapting the original function [*Sauer* §5.5]. If that fails, it uses Romberg integration [*Sauer* §5.3] with a hack if needed to attempt to handle integrals which are improper at one endpoint or the other.
 
@@ -612,6 +628,27 @@ The lower bound of the interval must always be pushed onto the stack first, foll
 
 See also William Kahan's article "Personal calculator has key to solve any equation f(x) = 0", [*Hewlett-Packard Journal* 30:12](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1979-12.pdf) (Dec 1979), pp. 20-26.
 
+Also note that we can solve for roots of a function of a function, such as the derivatve. For example, given `f(x) = x^3 - 2x^2 + 4` where `g(x) = f'(x)` and `h(x) = f''(x)`
+
+<p align="center">
+	<img src="docs/graph-cubic-fn.png" width="300">
+</p>
+
+we can find the maximum, minimum, and inflection point:
+
+	> :f dup dup sqr* swap sqr 2*- 4+;
+	1: <nil>
+	> :g $f ddx;
+	2: <nil>
+	> -0.5 0.5 $g solve
+	3: 0.000
+	> 1 2 $g solve
+	4: 1.333
+	> :h $f d2dx;
+	5: 1.333
+	> 0 1 $h solve
+	6: 0.667
+
 ## Functions on strings
 TODO
 
@@ -648,7 +685,7 @@ For example,
 	2: 0177
 	3: 0x007f
 
-If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Exit with "bye" or type ctrl-D; the latter will not save any state.
+If neither `-e` nor `-f` is present (the former takes precedence), oak starts an interactive REPL. Exit with "bye" or type ctrl-D.
 
 If the display or angular modes are set from the command line, these values override the options in `.oak.yml` (see below) or in any stored machine image loaded with `-i`.
 

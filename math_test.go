@@ -83,6 +83,25 @@ func TestDerivative(t *testing.T) {
 	}
 }
 
+func Test2ndDerivative(t *testing.T) {
+	var probs = []struct {
+		x float64
+		r string
+		f func(float64) (float64, error)
+	}{
+		{2, "2.499999999e-01", func(x float64) (float64, error) { return 1 / x, nil }},
+		{1, "2.718281829e+00", func(x float64) (float64, error) { return math.Exp(x), nil }},
+	}
+
+	for _, p := range probs {
+		i, _ := d2dx(p.f, p.x)
+
+		if f := fmt.Sprintf("%.9e", i); p.r != f {
+			t.Errorf("wanted %s, got %s", p.r, f)
+		}
+	}
+}
+
 func TestSolve(t *testing.T) {
 	var probs = []struct {
 		a, b float64

@@ -456,6 +456,7 @@ func (m *Machine) setBuiltins() {
 		// ADVANCED MATH
 
 		"ddx":    RunDDX,
+		"d2dx":   RunD2DX,
 		"integr": RunIntegrate,
 		"solve":  RunSolve,
 

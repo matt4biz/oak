@@ -8,10 +8,11 @@ import (
 
 // Settings is used to save internal settings.
 type Settings struct {
-	Base    radix   `json:"base"`
-	Digits  uint    `json:"digits"`
-	Display display `json:"display_mode"`
-	Mode    mode    `json:"trig_mode"`
+	Base     radix   `json:"base"`
+	Digits   uint    `json:"digits"`
+	Display  display `json:"display_mode"`
+	Mode     mode    `json:"trig_mode"`
+	Autosave string  `json:"autosave"`
 }
 
 // MachineImage is used to save the machine's state;
@@ -89,10 +90,6 @@ func (m *Machine) LoadFromFile(fn string) error {
 	}
 
 	m.resetForLoad()
-
-	if err != nil {
-		return fmt.Errorf("clear: %w", err)
-	}
 
 	for _, v := range mi.Stack {
 		v.m = m

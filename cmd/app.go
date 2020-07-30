@@ -143,6 +143,7 @@ func (a *app) run() error {
 // fromReadline runs the REPL and parses one line at a time.
 func (a *app) fromReadline(home string) error {
 	a.machine.SetInteractive()
+	a.machine.AutoReload()
 
 	config := readline.Config{
 		Stdin:                  readline.NewCancelableStdin(a.stdIn),
@@ -180,7 +181,7 @@ func (a *app) fromReadline(home string) error {
 		i, err := a.machine.Eval(il, e)
 
 		if err == io.EOF { // bye
-			return nil
+			break
 		} else if err != nil {
 			fmt.Fprintln(a.stdOut, err)
 		} else {
@@ -190,7 +191,7 @@ func (a *app) fromReadline(home string) error {
 		il++
 	}
 
-	return nil
+	return a.machine.Quit()
 }
 
 // fromFile collects the file and turns it into an immediate
@@ -291,7 +292,7 @@ func (a *app) readConfig(home string) error {
 	s := strings.Join(c.Commands, ", ")
 	r := ioutil.NopCloser(bytes.NewBufferString(s))
 
-	a.machine.SetOptions(c.Options)
+	a.machine.SetOptions(home, c.Options)
 
 	if err := a.fromInput(&b, r); err != nil {
 		fmt.Fprintln(a.errOut, b.String())

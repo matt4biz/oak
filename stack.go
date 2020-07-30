@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 )
 
 type (
@@ -64,6 +65,7 @@ type Machine struct {
 	words   map[string]*Word
 	builtin map[string]Expr
 	output  io.Writer
+	autos   string
 	digits  uint
 	disp    display
 	base    radix
@@ -112,6 +114,26 @@ func (m *Machine) SetInteractive() {
 // generate debugging output while evaluating.
 func (m *Machine) SetDebugging() {
 	m.debug = true
+}
+
+// AutoReload loads the machine state from a file if
+// the autosave option is set.
+func (m *Machine) AutoReload() {
+	if m.autos != "" {
+		if err := m.LoadFromFile(m.autos + "/.oakimg"); err != nil {
+			fmt.Println("unable to reload autosaved state")
+		}
+	}
+}
+
+// AutoSave saves the machine state to a file if the
+// option is set.
+func (m *Machine) AutoSave() {
+	if m.autos != "" {
+		if err := m.SaveToFile(m.autos + "/.oakimg"); err != nil {
+			fmt.Println("unable to autosave state")
+		}
+	}
 }
 
 // Eval takes a list of expressions (from the parser)
@@ -185,23 +207,29 @@ func (m *Machine) Display() string {
 
 // SetOptions takes an options map (e.g., from a config
 // file) and adjusts the machines settings.
-func (m *Machine) SetOptions(o map[string]string) {
-	if mode, ok := o["trig_mode"]; ok {
+func (m *Machine) SetOptions(home string, opts map[string]string) {
+	if mode, ok := opts["trig_mode"]; ok {
 		m.setMode(mode)
 	}
 
-	if base, ok := o["base"]; ok {
+	if base, ok := opts["base"]; ok {
 		m.setBase(base)
 	}
 
-	if digits, ok := o["digits"]; ok {
+	if digits, ok := opts["digits"]; ok {
 		if d, err := strconv.Atoi(digits); err == nil {
 			m.digits = uint(d)
 		}
 	}
 
-	if display, ok := o["display_mode"]; ok {
+	if display, ok := opts["display_mode"]; ok {
 		m.setDisplay(display)
+	}
+
+	if auto, ok := opts["autosave"]; ok {
+		if strings.ToLower(auto) == "true" {
+			m.autos = home
+		}
 	}
 }
 

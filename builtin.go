@@ -2,6 +2,7 @@ package oak
 
 import (
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -211,7 +212,15 @@ func (m *Machine) SetRadians() {
 	m.mode = radians
 }
 
-func (m *Machine) Quit() error {
-	// TODO - save state if required
+func (m *Machine) Bye() error {
 	return io.EOF
+}
+
+func (m *Machine) Quit() error {
+	if m.inter {
+		m.AutoSave()
+		fmt.Fprintln(m.output, "Goodbye")
+	}
+
+	return nil
 }

@@ -27,11 +27,7 @@ var (
 	// MISCELLANY
 
 	Bye ExprFunc = func(m *Machine) error {
-		if m.inter {
-			fmt.Fprintln(m.output, "Goodbye")
-		}
-
-		return m.Quit()
+		return m.Bye()
 	}
 
 	ChangeSign ExprFunc = func(m *Machine) error {

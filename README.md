@@ -317,7 +317,9 @@ along with these advance math functions taking a word as a function
 	       {a,b,x} -> x      [a,b are in the z,y registers]
 	solve  find a root of the function (word) x in the interval [a,b]
 	       {a,b,x} -> x      [a,b are in the z,y registers]
-	ddx    differentiate the function (word) x at the point y
+	ddx    calculate the derivative of the function (word) x at the point y
+	       {y,x}   -> x
+	d2dx   calculate the 2nd derivative of the function (word) x at the point y
 	       {y,x}   -> x
 	
 	gaussl calculate the definite integral using Gauss-Legendre
@@ -692,8 +694,10 @@ If the display or angular modes are set from the command line, these values over
 
 Demo mode ignores all command-line options except `-f` (which must be set) as well as any local configuration in `.oak.yml`.
 
-## History
+## History and State
 The REPL stores up to 50 lines of command history in `$HOME/.oakhist` which is available to your next session (through the normal operations at the prompt, e.g., up-arrow).
+
+If the autosave option is set in a configuration file (see below), and oak is running interactively, the current state will be saved in the file `$HOME/.oakimg` on exit, and read when oak starts up again.
 
 ## Startup configuration
 The machine will read the file `$HOME/.oak.yml` if it is present. The file may have both options and commands. For example,
@@ -717,6 +721,7 @@ The possible options are
 	display_mode     "free", "fix", "sci", "eng"
 	base             10, 2, 8, 16
 	digits           2, 0+
+	autosave         "true" or "false"
 
 where the first value is the default in each case.
 

@@ -1,4 +1,5 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/matt4biz/oak)](https://goreportcard.com/report/github.com/matt4biz/oak)
+[![Go Report Card](https://goreportcard.com/badge/github.com/matt4biz/oak)](https://goreportcard.com/report/github.com/matt4biz/oak) [![Run on Repl.it](https://repl.it/badge/github/matt4biz/oak)](https://repl.it/github/matt4biz/oak)
+
 
 # oak
 **A command-line desktop calculator for Unix**

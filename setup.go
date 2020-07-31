@@ -197,6 +197,10 @@ var (
 		return nil
 	}
 
+	Delete ExprFunc = func(m *Machine) error {
+		return m.Delete()
+	}
+
 	// BASE CONVERSION
 
 	SetBase ExprFunc = func(m *Machine) error {
@@ -412,15 +416,16 @@ func (m *Machine) setBuiltins() {
 
 		// STACK OPERATIONS
 
-		"depth": Depth,
-		"drop":  Drop,
-		"dup":   Dup,
-		"dup2":  Dup2,
-		"nop":   Nop,
-		"over":  Over,
-		"roll":  Roll,
-		"swap":  Swap,
-		"top":   Top,
+		"depth":  Depth,
+		"drop":   Drop,
+		"dup":    Dup,
+		"dup2":   Dup2,
+		"nop":    Nop,
+		"over":   Over,
+		"roll":   Roll,
+		"swap":   Swap,
+		"top":    Top,
+		"delete": Delete,
 
 		// BASE CONVERSION
 

@@ -366,6 +366,13 @@ func BinaryMathFunc(name string, mf math2Func) ExprFunc {
 		}
 
 		if w.T != word {
+			// we get a symbol if we've recompiled a word
+			// that refers to a word that's been deleted
+
+			if w.T == symbol {
+				return fmt.Errorf("%s: unknown word %s", name, w.V.(*Symbol).S)
+			}
+
 			return fmt.Errorf("%s: invalid operand x=%#v", name, w)
 		}
 
@@ -422,6 +429,13 @@ func UnaryMathFunc(name string, mf math1Func) ExprFunc {
 		}
 
 		if w.T != word {
+			// we get a symbol if we've recompiled a word
+			// that refers to a word that's been deleted
+
+			if w.T == symbol {
+				return fmt.Errorf("%s: unknown word %s", name, w.V.(*Symbol).S)
+			}
+
 			return fmt.Errorf("%s: invalid operand x=%#v", name, w)
 		}
 

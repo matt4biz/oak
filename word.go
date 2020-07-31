@@ -98,8 +98,7 @@ func (m *Machine) Install(w *Word) {
 	m.words[w.N] = w
 }
 
-// Word returns the word for the given name if
-// known, and an error otherwise.
+// Word returns the word for the given name if known.
 func (m *Machine) Word(s string) Expr {
 	w, ok := m.words[s]
 

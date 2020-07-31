@@ -137,6 +137,10 @@ func (a *app) run() error {
 		return a.fromFile(a.fn)
 	}
 
+	if a.debug {
+		a.machine.SetDebugging()
+	}
+
 	return a.fromReadline(home)
 }
 

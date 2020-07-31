@@ -237,8 +237,6 @@ Variables have two forms
 		> $name@+
 		4: 8
 
-	There is no way to delete user-defined variables at this time.
-
 ## Operations
 
 oak offers the following floating-point binary operators:
@@ -346,6 +344,8 @@ as well as these operations on the stack / machine
 	       statistics accumulating registers
 	clrvar reset the variable memory (both user-defined and 
 	       results variables)
+	delete removes a user-defined word or variable from memory
+	       (although it may be referenced by another word)
 	depth  push the existing stack depth onto it
 	       {w,z,y,x} -> {z,y,x,#}
 	dump   display the stack & variables, leave stack unchanged
@@ -745,7 +745,6 @@ Here are a few possible enhancements:
 - vector operations
 - string functions (really?)
 - logic & iteration in user-defined words
-- allow user-defined variables to be deleted
 - interest-rate calculations, similar to the HP 12c
 - add support for complex numbers and their functions (e.g, tanh)
 - oh, and we need a circular slide rule mode of operation, too ;-)

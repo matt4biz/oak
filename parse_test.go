@@ -221,6 +221,21 @@ var parseTests = []parseTest{
 		want:  []string{"1.00", "2.00", "3.00", "4.00", "5.00", "4.00", "5.00", "40.00", "6.40"},
 	},
 	{
+		name:  "simple-delete",
+		input: `1 :f 2/ 1-; $f delete`,
+		want:  []string{"1"},
+	},
+	{
+		name:  "unknown-word",
+		input: `0 $f ddx`,
+		fail:  "ddx: unknown word $f",
+	},
+	{
+		name:  "unknown-var",
+		input: `$f delete`,
+		fail:  "delete: unknown var $f",
+	},
+	{
 		name:  "simple-solve",
 		input: `:f 2/ 1-; -1 2 $f solve`,
 		want:  []string{"2"},

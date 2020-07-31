@@ -137,6 +137,38 @@ func (m *Machine) Roll() {
 	}
 }
 
+func (m *Machine) Delete() error {
+	if len(m.stack) < 1 {
+		return errUnderflow
+	}
+
+	v := m.Pop()
+
+	switch v.T {
+	case word:
+		name := v.V.(*Word).N
+
+		if _, ok := m.words[name]; !ok {
+			return fmt.Errorf("delete: unknown word %s", name)
+		}
+
+		delete(m.words, name)
+		return nil
+
+	case symbol:
+		name := v.V.(*Symbol).S
+
+		if _, ok := m.vars[name]; !ok {
+			return fmt.Errorf("delete: unknown var %s", name)
+		}
+
+		delete(m.vars, name)
+		return nil
+	}
+
+	return fmt.Errorf("delete: invalid operand")
+}
+
 func (m *Machine) SumXY(x, y *Value) {
 	if m.stats == nil || m.stats[sumn] == nil {
 		m.initStats()

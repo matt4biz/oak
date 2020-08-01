@@ -533,7 +533,7 @@ Each of these methods takes a word representing a function and one or two number
 These operations leave the "last x" register unchanged.
 
 ### Derivatives
-The function `ddx` will calculate the derivative `f'(x)` of a function `f` represented as a word using a three-point finite-difference approximation [*Sauer* §5.1], with *h* = 1e-5.
+The function `ddx` will calculate the derivative `f'(x)` of a function `f` represented as a word using a five-point finite-difference approximation [*Sauer* §5.1], with *h* = 1e-5.
 
 For example, given `f(x) = e**x`, calculate the derivative at 0 and 1
 

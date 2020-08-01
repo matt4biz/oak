@@ -70,14 +70,14 @@ func TestDerivative(t *testing.T) {
 		r string
 		f func(float64) (float64, error)
 	}{
-		{2, "-2.500000000e-01", func(x float64) (float64, error) { return 1 / x, nil }},
-		{0, "1.000000000e+00", func(x float64) (float64, error) { return math.Exp(x), nil }},
+		{2, "-2.500000000030e-01", func(x float64) (float64, error) { return 1 / x, nil }},
+		{1, "2.718281828429e+00", func(x float64) (float64, error) { return math.Exp(x), nil }},
 	}
 
 	for _, p := range probs {
 		i, _ := ddx(p.f, p.x)
 
-		if f := fmt.Sprintf("%.9e", i); p.r != f {
+		if f := fmt.Sprintf("%.12e", i); p.r != f {
 			t.Errorf("wanted %s, got %s", p.r, f)
 		}
 	}
@@ -89,14 +89,14 @@ func Test2ndDerivative(t *testing.T) {
 		r string
 		f func(float64) (float64, error)
 	}{
-		{2, "2.499999999e-01", func(x float64) (float64, error) { return 1 / x, nil }},
-		{1, "2.718281829e+00", func(x float64) (float64, error) { return math.Exp(x), nil }},
+		{2, "2.499999999147e-01", func(x float64) (float64, error) { return 1 / x, nil }},
+		{1, "2.718281828851e+00", func(x float64) (float64, error) { return math.Exp(x), nil }},
 	}
 
 	for _, p := range probs {
 		i, _ := d2dx(p.f, p.x)
 
-		if f := fmt.Sprintf("%.9e", i); p.r != f {
+		if f := fmt.Sprintf("%.12e", i); p.r != f {
 			t.Errorf("wanted %s, got %s", p.r, f)
 		}
 	}
@@ -109,7 +109,7 @@ func TestSolve(t *testing.T) {
 		f    func(float64) (float64, error)
 	}{
 		{-1, 1, "6.823278038e-01", func(x float64) (float64, error) { return x*x*x + x - 1, nil }},
-		{-1, 1, "8.881783973e-16", func(x float64) (float64, error) { return x * x, nil }},
+		{-1, 1, "8.881782896e-16", func(x float64) (float64, error) { return x * x, nil }},
 		{1, 2, "1.334457345e+00", func(x float64) (float64, error) { return 4*x*x*x*x - 6*x*x - 11/4, nil }},
 	}
 

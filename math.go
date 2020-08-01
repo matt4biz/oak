@@ -179,12 +179,13 @@ func integrate(f func(float64) (float64, error), a, b float64) (float64, error) 
 	return i, err
 }
 
-// ddx uses a three-point centered-difference approximation to find
-// the derivative. See Sauer 3rd ed., section 5.1.
+// ddx uses a five-point centered-difference approximation to find
+// the derivative. See Sauer 3rd ed., section 5.1. See also
+// https://en.wikipedia.org/wiki/Finite_difference_coefficient.
 func ddx(f func(float64) (float64, error), x float64) (float64, error) {
 	const h = 1e-5
 
-	y1, err := f(x + h)
+	y1, err := f(x - 2*h)
 
 	if err != nil {
 		return 0, err
@@ -196,11 +197,24 @@ func ddx(f func(float64) (float64, error), x float64) (float64, error) {
 		return 0, err
 	}
 
-	return (y1 - y2) / (2 * h), nil
+	y3, err := f(x + h)
+
+	if err != nil {
+		return 0, err
+	}
+
+	y4, err := f(x + 2*h)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return (y1 - 8*y2 + 8*y3 - y4) / (12 * h), nil
 }
 
 // d2dx uses a five-point centered-difference approximation to find
-// the second derivative.
+// the second derivative. See Sauer 3rd ed., section 5.1. See also
+// https://en.wikipedia.org/wiki/Finite_difference_coefficient.
 func d2dx(f func(float64) (float64, error), x float64) (float64, error) {
 	const h = 1e-3 // must be smaller, as it will be squared
 

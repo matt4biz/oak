@@ -246,6 +246,11 @@ var parseTests = []parseTest{
 		want:  []string{"0.6823278"},
 	},
 	{
+		name:  "solve-newton",
+		input: `7 fix :f sqr; -1 1 $f solve`,
+		want:  []string{"0.0000000"},
+	},
+	{
 		name:  "integrate",
 		input: `7 fix :g dup * -2/ exp; 0 1.5 $g integr`,
 		want:  []string{"1.0858533"},

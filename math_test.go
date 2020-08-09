@@ -109,7 +109,7 @@ func TestSolve(t *testing.T) {
 		f    func(float64) (float64, error)
 	}{
 		{-1, 1, "6.823278038e-01", func(x float64) (float64, error) { return x*x*x + x - 1, nil }},
-		{-1, 1, "0.000000000e+00", func(x float64) (float64, error) { return x * x, nil }},
+		{-1, 1, "8.881782896e-16", func(x float64) (float64, error) { return x * x, nil }},
 		{1, 2, "1.334457345e+00", func(x float64) (float64, error) { return 4*x*x*x*x - 6*x*x - 11/4, nil }},
 	}
 

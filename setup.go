@@ -462,6 +462,6 @@ func (m *Machine) setBuiltins() {
 		"solve":  RunSolve,
 
 		"gaussl": RunGauss,
-		"rombrg": RunRomberg,
+		"newton": RunNewton,
 	}
 }

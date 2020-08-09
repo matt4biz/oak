@@ -170,13 +170,7 @@ func romberg(f func(float64) (float64, error), a, b float64) (float64, error) {
 
 // integrate tries one method and if that fails, tries, tries yet again Mr Kidd.
 func integrate(f func(float64) (float64, error), a, b float64) (float64, error) {
-	i, err := gauss(f, a, b)
-
-	if err == errImproper {
-		i, err = romberg(f, a, b)
-	}
-
-	return i, err
+	return romberg(f, a, b)
 }
 
 // ddx uses a five-point centered-difference approximation to find
@@ -251,6 +245,42 @@ func d2dx(f func(float64) (float64, error), x float64) (float64, error) {
 	return (-y0 + 16*y1 - 30*y2 + 16*y3 - y4) / (12 * h * h), nil
 }
 
+// newton uses the Newton-Raphson method to find a root.
+func newton(f func(float64) (float64, error), a, b float64) (x float64, err error) {
+	x0 := (b - a) / 2
+
+	for i := 0; i < 100; i++ {
+		y, err := f(x0)
+
+		if err != nil {
+			return 0, err
+		}
+
+		d, err := ddx(f, x0)
+
+		if err != nil {
+			return 0, err
+		}
+
+		x = x0 - (y / d)
+
+		if math.Abs(x0-x) < eps {
+			break
+		}
+
+		x0 = x
+	}
+
+	if x < a || x > b {
+		return 0, errNoSolution
+	}
+
+	return
+}
+
+// solve uses Brent's method to find a root in the given interval; see See Sauer 3rd
+// ed. section 1.5 as well as https://maths-people.anu.edu.au/~brent/pub/pub011.html.
+// However, it backs off to Newton-Raphson if the initial opposite-sign test fails.
 //nolint:gocyclo
 func solve(f func(float64) (float64, error), a, b float64) (x float64, err error) {
 	var d float64
@@ -261,14 +291,22 @@ func solve(f func(float64) (float64, error), a, b float64) (x float64, err error
 		return 0, err
 	}
 
+	if math.IsNaN(fa) || math.IsInf(fa, -1) || math.IsInf(fa, 1) {
+		return 0, errNoSolution
+	}
+
 	fb, err := f(b)
 
 	if err != nil {
 		return 0, err
 	}
 
-	if fa*fb > 0 {
+	if math.IsNaN(fb) || math.IsInf(fb, -1) || math.IsInf(fb, 1) {
 		return 0, errNoSolution
+	}
+
+	if fa*fb > 0 {
+		return newton(f, a, b)
 	}
 
 	if math.Abs(fa) < math.Abs(fb) {
@@ -276,26 +314,27 @@ func solve(f func(float64) (float64, error), a, b float64) (x float64, err error
 	}
 
 	c, fc := a, fa
-	mf := true
+	mid := true
 
 	for i := 0; i < 100; i++ {
 		if math.Abs(fa-fc) > eps && math.Abs(fb-fc) > eps {
+			// inverse quadratic interpolation, but only if the points are distinct
 			x = (a * fb * fc / ((fa - fb) * (fa - fc))) + (b * fa * fc / ((fb - fa) * (fb - fc))) + (c * fa * fb / ((fc - fa) * (fc - fb)))
 		} else {
+			// secant method
 			x = b - fb*(b-a)/(fb-fa)
 		}
 
-		bad1 := x < (3*a+b)/4 || x > b
-		bad2 := mf && math.Abs(x-b) >= math.Abs(b-c)/2
-		bad3 := !mf && math.Abs(x-b) >= math.Abs(c-d)/2
-		bad4 := mf && math.Abs(b-c) < eps
-		bad5 := !mf && math.Abs(c-d) < eps
+		outside := x < (3*a+b)/4 || x > b
+		bisectBC := mid && (math.Abs(x-b) >= math.Abs(b-c)/2 || math.Abs(b-c) < eps)
+		bisectCD := !mid && (math.Abs(x-b) >= math.Abs(c-d)/2 || math.Abs(c-d) < eps)
 
-		if bad1 || bad2 || bad3 || bad4 || bad5 {
+		if outside || bisectBC || bisectCD {
+			// simple linear interpolation (bisection)
 			x = (a + b) / 2
-			mf = true
+			mid = true
 		} else {
-			mf = false
+			mid = false
 		}
 
 		y, err := f(x)
@@ -340,6 +379,7 @@ var (
 
 	RunGauss   = BinaryMathFunc("gaussl", gauss)
 	RunRomberg = BinaryMathFunc("rombrg", romberg)
+	RunNewton  = BinaryMathFunc("newton", newton)
 )
 
 // BinaryMathFunc creates a function from a word by pushing

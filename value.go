@@ -57,7 +57,9 @@ func (v Value) String() string { // nolint:gocyclo
 			// we need to find the correct multiple of 3
 			// which is weird when it's a fractional number
 
-			if e >= 0 {
+			if f == 0.0 {
+				e = 0
+			} else if e >= 0 {
 				e = (e / 3) * 3
 			} else {
 				e = (-e + 3) / 3 * (-3)

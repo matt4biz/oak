@@ -38,7 +38,7 @@ For example
 	> 2 pi 3 sqr * *
 	2: 56.54867
 
-where the second example is `2 * pi * r^2` for `r=3`: the area of a circle with radius 3.
+where the second example is `2 * pi * r**2` for `r=3`: the area of a circle with radius 3.
 
 oak uses readline in interactive mode, allowing prior input lines to be recalled and edited.
 
@@ -558,7 +558,7 @@ For example,
 	4: 0.25000000
 
 ### Integrals
-The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It uses Gaussian quadrature with a 7th-order Legendre polynomial over [-1,1] by adapting the original function [*Sauer* §5.5]. If that fails, it uses Romberg integration [*Sauer* §5.3] with a hack if needed to attempt to handle integrals which are improper at one endpoint or the other.
+The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It uses Romberg integration [*Sauer* §5.3] with a hack if needed to attempt to handle integrals which are improper at one endpoint or the other.
 
 For example, given `f(x) = e**x`, calculate the definite integral over [0,2]
 
@@ -573,9 +573,11 @@ where the value of the integral is `e**2 - 1` (shown for comparison).
 
 The lower bound of the interval must always be pushed onto the stack first, followed by the upper bound and then the word.
 
+The Romberg method will run until the difference between successive estimates is less than *eps* = 1e-15 (or until it runs over a fixed limit on the number of iterations allowed, currently 24).
+
 **NOTE** that the results may be quite off for improper integrals or functions which oscillate wildly in the given interval. Unfortunately, it's just not possible for a calculator to handle all cases, and indeed the user should understand the problem being posed and not blindly trust the machine. See William Kahan's great article "Handheld calculator evaluates integrals", [*Hewlett-Packard Journal* 31:8](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1980-08.pdf) (Aug 1980), pp. 23-32.
 
-The two methods may be used by themselves by invoking `gaussl` or `rombrg` in exactly the same way; it is the Gaussian procedure which will most likely report an error if it considers the integral to be improper.
+oak also offers Gaussian quadrature with a 7th-order Legendre polynomial over [-1,1] by adapting the original function [*Sauer* §5.5] by invoking `gaussl`. The Gaussian procedure may report an error if it considers the integral to be improper.
 
 For example, the logarithm and reciprocal functions starting at 0 are improper:
 
@@ -583,7 +585,7 @@ For example, the logarithm and reciprocal functions starting at 0 are improper:
 	1: <nil>
 	> 0 1 $f gaussl
 	improper integral
-	> 0 1 $f rombrg
+	> 0 1 $f integr
 	3: -1.0000005786329074
 	> 5 fix
 	4: -1.00000
@@ -591,21 +593,19 @@ For example, the logarithm and reciprocal functions starting at 0 are improper:
 	5: -1.00000
 	> 0 1 $g gaussl
 	improper integral
-	> 0 1 $g rombrg
+	> 0 1 $g integr
 	7: 36308168.95462
 
 where the last result is headed to +Inf.
 
-The Romberg method will run until the difference between successive estimates is less than *eps* = 1e-15 (or until it runs over a fixed limit on the number of iterations allowed, currently 24).
-
 ### Root finding
 The function `solve` takes a function `f(x)` represented as a word as well as an interval [a, b] and attempts to find a root within that interval.
 
-It uses two methods, the secant method [*Sauer* §1.5] and, if that is not successful, the Newton-Raphson method [*Sauer* §1.4]. Either one may fail for certain cases (for example, Newton's method may oscillate between two roots without converging), but one of them should work in most cases. 
+It uses Brent's method [*Sauer* §1.5], a combination of the secant method, inverse quadratic interpolation, and bisection methods [see also Dover's reprint of Brent's _Algorithms for Minimization Without Derivatives_ (ISBN [9780486419985](https://www.amazon.com/Algorithms-Minimization-Without-Derivatives-Mathematics/dp/0486419983))].
 
-Both methods iterate until the difference between two successive estimates is less than *eps* = 1e-15 (or until they run over a fixed limit on the number of iterations allowed, currently 100).
+The method iterates until the estimated root, or the difference between two successive estimates, is less than *eps* = 1e-15 (or until it runs over a fixed limit on the number of iterations allowed, currently 100).
 
-If no root is found within the given interval, `solve` will return "no solution".
+If no root is found within the given interval, `solve` will return "no solution". This should happen only when there is no root there, or perhaps when the root lies exactly at one end of the interval.
 
 For example, given the function `f(x) = x**2 + x - 1`, find a root between 0 and 2
 
@@ -615,23 +615,31 @@ For example, given the function `f(x) = x**2 + x - 1`, find a root between 0 and
 	2: 5
 	> 3 g
 	3: 11
-	> 0 2 $g solve
+	> 0 3 $g solve
 	4: 0.6180339887498949
-	> -1 0 $g solve
-	no solution
-	> -3 -1 $g solve
+	> -3 0 $g solve
 	5: -1.618033988749895
 
 The lower bound of the interval must always be pushed onto the stack first, followed by the upper bound and then the word.
 
-**NOTE** that sometimes this method will fail to find a solution within the interval if it is attracted to another root nearby. This happens in the example when we use the interval [-5, 0], but not when we exclude 0 (as with the interval [-3, -1]).
+Brent's method assumes _f(a)_ and _f(b)_ have opposite signs; if not, then `solve` backs off to using the Newton-Raphson method [*Sauer* §1.4], which may not always work.
 
-	> -5 0 $g solve
+Also, Brent's method will return "no solution" if it cannot evaluate the function at one or both of the endpoints. For example, given `f(x) = ln(6x - x**4)` (which is not defined at 0 or 2),
+
+	> :f dup 6* swap sqr sqr - ln;
+	1: <nil>
+	> 0 1 $f solve
 	no solution
+	> 0.001 1 $f solve
+	3: 0.16680
+	> 1 2 $f solve
+	no solution
+	> 1 1.8 $f solve
+	5: 1.75777
 
 See also William Kahan's article "Personal calculator has key to solve any equation f(x) = 0", [*Hewlett-Packard Journal* 30:12](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1979-12.pdf) (Dec 1979), pp. 20-26.
 
-Also note that we can solve for roots of a function of a function, such as the derivatve. For example, given `f(x) = x^3 - 2x^2 + 4` where `g(x) = f'(x)` and `h(x) = f''(x)`
+Also note that we can solve for roots of a function of a function, such as the derivatve. For example, given `f(x) = x**3 - 2x**2 + 4` where `g(x) = f'(x)` and `h(x) = f''(x)`
 
 <p align="center">
 	<img src="docs/graph-cubic-fn.png" width="300">
@@ -752,4 +760,4 @@ Here are a few possible enhancements:
 ## Known Bugs
 There are no known issues.
 
-Code coverage is hovering around 70% (still need better coverage of error paths).
+Code coverage is hovering around 72% (still need better coverage of error paths).

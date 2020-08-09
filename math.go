@@ -251,97 +251,84 @@ func d2dx(f func(float64) (float64, error), x float64) (float64, error) {
 	return (-y0 + 16*y1 - 30*y2 + 16*y3 - y4) / (12 * h * h), nil
 }
 
-// newton uses the Newton-Raphson method to find a root.
-func newton(f func(float64) (float64, error), a, b float64) (x float64, err error) {
-	x0 := (b - a) / 2
-
-	for i := 0; i < 100; i++ {
-		y, err := f(x0)
-
-		if err != nil {
-			return 0, err
-		}
-
-		d, err := ddx(f, x0)
-
-		if err != nil {
-			return 0, err
-		}
-
-		x = x0 - (y / d)
-
-		if math.Abs(x0-x) < eps {
-			return x, nil
-		}
-
-		x0 = x
-	}
-
-	return
-}
-
-// secant finds a root using the secant method.
-func secant(f func(float64) (float64, error), a, b float64) (x float64, err error) {
-	x0 := math.Min(a, b)
-	x1 := math.Max(a, b)
-
-	for i := 0; i < 100; i++ {
-		y0, err := f(x0)
-
-		if err != nil {
-			return 0, err
-		}
-
-		y1, err := f(x1)
-
-		if err != nil {
-			return 0, err
-		}
-
-		x = x1 - ((y1 * (x1 - x0)) / (y1 - y0))
-
-		if math.Abs(x1-x) < eps {
-			return x, nil
-		}
-
-		x0, x1 = x1, x
-	}
-
-	return
-}
-
-// solve uses the secant method by preference because sometimes newton
-// will oscillate between two roots, but we need newton as a backup
-// because secant will fail for some cases too (hopefully not the
-// same ones :-); we always check that the root lies in the interval.
+//nolint:gocyclo
 func solve(f func(float64) (float64, error), a, b float64) (x float64, err error) {
-	x, err = secant(f, a, b)
+	var d float64
+
+	fa, err := f(a)
 
 	if err != nil {
 		return 0, err
 	}
 
-	if !math.IsNaN(x) && a <= x && x <= b {
-		return x, nil
-	}
-
-	x, err = newton(f, a, b)
+	fb, err := f(b)
 
 	if err != nil {
 		return 0, err
 	}
 
-	y, err := f(x)
-
-	if err != nil {
-		return 0, err
-	}
-
-	if math.Abs(y) > 1e-9 || x < a || x > b {
+	if fa*fb > 0 {
 		return 0, errNoSolution
 	}
 
-	return x, nil
+	if math.Abs(fa) < math.Abs(fb) {
+		a, fa, b, fb = b, fb, a, fa
+	}
+
+	c, fc := a, fa
+	mf := true
+
+	for i := 0; i < 100; i++ {
+		if math.Abs(fa-fc) > eps && math.Abs(fb-fc) > eps {
+			x = (a * fb * fc / ((fa - fb) * (fa - fc))) + (b * fa * fc / ((fb - fa) * (fb - fc))) + (c * fa * fb / ((fc - fa) * (fc - fb)))
+		} else {
+			x = b - fb*(b-a)/(fb-fa)
+		}
+
+		bad1 := x < (3*a+b)/4 || x > b
+		bad2 := mf && math.Abs(x-b) >= math.Abs(b-c)/2
+		bad3 := !mf && math.Abs(x-b) >= math.Abs(c-d)/2
+		bad4 := mf && math.Abs(b-c) < eps
+		bad5 := !mf && math.Abs(c-d) < eps
+
+		if bad1 || bad2 || bad3 || bad4 || bad5 {
+			x = (a + b) / 2
+			mf = true
+		} else {
+			mf = false
+		}
+
+		y, err := f(x)
+
+		if err != nil {
+			return 0, err
+		}
+
+		d, c, fc = c, b, fb
+
+		if fa*y < 0 {
+			b, fb = x, y
+		} else {
+			a, fa = x, y
+		}
+
+		if math.Abs(fa) < math.Abs(fb) {
+			a, fa, b, fb = b, fb, a, fa
+		}
+
+		switch {
+		case math.Abs(y) < eps:
+			return x, nil
+
+		case math.Abs(fb) < eps:
+			return b, nil
+
+		case math.Abs(b-a) < eps:
+			return x, nil
+		}
+	}
+
+	return
 }
 
 var (

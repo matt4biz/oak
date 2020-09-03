@@ -111,13 +111,13 @@ func TestUnaryOp(t *testing.T) {
 		{name: "sqrt-f-dec", xt: floater, x: 4.0, ops: []Expr{Predefined("sqrt")}, want: "2.000"},
 
 		{name: "log-f-dec", xt: floater, x: 100.0, ops: []Expr{Predefined("log")}, want: "2.000"},
-		{name: "pow-f-dec", xt: floater, x: 3.0, ops: []Expr{Predefined("pow")}, want: "1000.000"},
+		{name: "alog-f-dec", xt: floater, x: 3.0, ops: []Expr{Predefined("alog")}, want: "1000.000"},
 		{name: "ln-f-dec", xt: floater, x: 100.0, ops: []Expr{Predefined("ln")}, want: "4.605"},
 		{name: "ln1-f-dec", xt: floater, x: math.E, ops: []Expr{Predefined("ln")}, want: "1.000"},
 		{name: "exp-f-dec", xt: floater, x: 1.0, ops: []Expr{Predefined("exp")}, want: "2.718"},
 
 		{name: "log-i-hex", xt: integer, x: uint(100), ops: []Expr{Predefined("log")}, base: base16, want: "0x0002"},
-		{name: "pow-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("pow")}, base: base16, want: "0x03e8"},
+		{name: "alog-i-hex", xt: integer, x: uint(3), ops: []Expr{Predefined("alog")}, base: base16, want: "0x03e8"},
 
 		{name: "not-i-bin", xt: integer, x: uint(0b01101001), ops: []Expr{Not}, base: base02,
 			want: "0b1111111111111111111111111111111111111111111111111111111110010110"},

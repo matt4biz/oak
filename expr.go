@@ -590,6 +590,8 @@ func Predefined(s string) Expr { // nolint:gocyclo
 		return UnaryOp(s, math.Abs)
 	case "acos":
 		return InverseTrigOp(s, math.Acos)
+	case "alog":
+		return UnaryOp(s, func(x float64) float64 { return math.Pow(10, x) })
 	case "asin":
 		return InverseTrigOp(s, math.Asin)
 	case "atan":
@@ -636,8 +638,6 @@ func Predefined(s string) Expr { // nolint:gocyclo
 		return BinaryOp(s, Permutation)
 	case "popcnt":
 		return UnaryBitwiseOp(s, func(x uint) uint { return uint(bits.OnesCount(x)) })
-	case "pow":
-		return UnaryOp(s, func(x float64) float64 { return math.Pow(10, x) })
 	case "rad":
 		return Radians
 	case "recp":

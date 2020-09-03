@@ -146,8 +146,8 @@ var parseTests = []parseTest{
 		want:  []string{"12", "6", "1"},
 	},
 	{
-		name:  "pow-log",
-		input: `3 pow, log`,
+		name:  "alog-log",
+		input: `3 alog, log`,
 		want:  []string{"1000", "3"},
 	},
 	{

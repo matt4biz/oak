@@ -266,6 +266,7 @@ along with the following floating-point unary functions, which replace the top o
 
 	abs    absolute value
 	acos   arccos (inverse cos)
+	alog   10 ** x (antilog)
 	asin   arcsin (inverse sin)
 	atan   arctan (inverse tan)
 	cbrt   cube root (x ** 1/3)
@@ -279,7 +280,6 @@ along with the following floating-point unary functions, which replace the top o
 	frac   return the fractional part of the number
 	ln     natural log
 	log    log in base 10
-	pow    10 ** x
 	recp   reciprocal [1/x]
 	sin    sine
 	sqr    square (x ** 2)

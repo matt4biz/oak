@@ -10,7 +10,6 @@ var (
 	errUnderflow  = errors.New("stack underflow")
 	errNoStats    = errors.New("stats empty")
 	errNoSolution = errors.New("no solution")
-	errImproper   = errors.New("improper integral")
 )
 
 // Last returns the last top-of-stack value that

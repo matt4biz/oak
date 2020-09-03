@@ -319,9 +319,6 @@ along with these advance math functions taking a word as a function
 	       {y,x}   -> x
 	d2dx   calculate the 2nd derivative of the function (word) x at the point y
 	       {y,x}   -> x
-	
-	gaussl calculate the definite integral using Gauss-Legendre
-	rombrg calculate the definite integral using Romberg (possibly adapted)
 
 and these bitwise unary functions
 
@@ -558,7 +555,7 @@ For example,
 	4: 0.25000000
 
 ### Integrals
-The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It uses Romberg integration [*Sauer* §5.3] with a hack if needed to attempt to handle integrals which are improper at one endpoint or the other.
+The function `integr` will calculate the definite integral of a function `f(x)` between two values *a* and *b* (assuming *a < b*). It is based on Romberg integration [*Sauer* §5.3], but it is adaptive (splitting intervals in half) and uses a hack if needed to handle integrals which are improper at one endpoint or the other. It can be **very very** slow on some improper integrals.
 
 For example, given `f(x) = e**x`, calculate the definite integral over [0,2]
 
@@ -573,30 +570,22 @@ where the value of the integral is `e**2 - 1` (shown for comparison).
 
 The lower bound of the interval must always be pushed onto the stack first, followed by the upper bound and then the word.
 
-The Romberg method will run until the difference between successive estimates is less than *eps* = 1e-15 (or until it runs over a fixed limit on the number of iterations allowed, currently 24).
+The Romberg method will run until the difference between successive estimates is less than *eps* = 1e-15 (or until it runs over a fixed limit on the number of iterations allowed, currently 24). The adaptive logic will run to a maximum recursive depth of 20.
 
 **NOTE** that the results may be quite off for improper integrals or functions which oscillate wildly in the given interval. Unfortunately, it's just not possible for a calculator to handle all cases, and indeed the user should understand the problem being posed and not blindly trust the machine. See William Kahan's great article "Handheld calculator evaluates integrals", [*Hewlett-Packard Journal* 31:8](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1980-08.pdf) (Aug 1980), pp. 23-32.
 
-oak also offers Gaussian quadrature with a 7th-order Legendre polynomial over [-1,1] by adapting the original function [*Sauer* §5.5] by invoking `gaussl`. The Gaussian procedure may report an error if it considers the integral to be improper.
-
 For example, the logarithm and reciprocal functions starting at 0 are improper:
 
-	> :f ln;
+	> 10 fix :f ln;
 	1: <nil>
-	> 0 1 $f gaussl
-	improper integral
+	> :g sqrt recp;
+	2: <nil>
 	> 0 1 $f integr
-	3: -1.0000005786329074
-	> 5 fix
-	4: -1.00000
-	> :g recp;
-	5: -1.00000
-	> 0 1 $g gaussl
-	improper integral
+	3: -1.0000002767
 	> 0 1 $g integr
-	7: 36308168.95462
+	4: 2.0000006815
 
-where the last result is headed to +Inf.
+Here both examples converge (the exact values are -1 and 2), with the adaptive method yielding about 6 digits of precision, but the first result takes about 3 seconds to complete, while the second will take more than a minute on a modern laptop!
 
 ### Root finding
 The function `solve` takes a function `f(x)` represented as a word as well as an interval [a, b] and attempts to find a root within that interval.

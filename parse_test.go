@@ -255,15 +255,20 @@ var parseTests = []parseTest{
 		input: `7 fix :g dup * -2/ exp; 0 1.5 $g integr`,
 		want:  []string{"1.0858533"},
 	},
-	{
-		name:  "backup-integrate",
-		input: `2 sci :f recp; 0 1 $f integr`,
-		want:  []string{"3.63e+07"},
-	},
+	// {
+	// 	name:  "improper-integral",
+	// 	input: `5 fix :f sqrt recp; 0 1 $f integr`,
+	// 	want:  []string{"2.00000"},
+	// },
 	{
 		name:  "ddx",
 		input: `4 fix :f recp; 2 $f ddx`,
 		want:  []string{"-0.2500"},
+	},
+	{
+		name:  "d2dx",
+		input: `4 fix :f recp; 2 $f d2dx`,
+		want:  []string{"0.2500"},
 	},
 	{
 		name:  "bitwise-xor",

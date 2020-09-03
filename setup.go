@@ -460,8 +460,5 @@ func (m *Machine) setBuiltins() {
 		"d2dx":   RunD2DX,
 		"integr": RunIntegrate,
 		"solve":  RunSolve,
-
-		"gaussl": RunGauss,
-		"newton": RunNewton,
 	}
 }

@@ -12,83 +12,6 @@ type (
 	math1Func = func(f func(float64) (float64, error), x float64) (y float64, err error)
 )
 
-// See Table of the zeros of the Legendre polynomials of order 1-16 and the weight coefficients for
-// Gauss’ mechanical quadrature formula, Arnold N. Lowan, Norman Davids, Arthur Levenson,
-// Bulletin Amer Math Soc 48 (1942), pp. 739--743.
-// https://www.ams.org/journals/bull/1942-48-10/S0002-9904-1942-07771-8/S0002-9904-1942-07771-8.pdf
-var legendre = []struct {
-	x, a float64
-}{
-	{-0.949107912342759, 0.129484966168870},
-	{-0.741531185599394, 0.279705391489277},
-	{-0.405845151377397, 0.381830050505119},
-	{0.000000000000000, 0.417959183673469},
-	{0.405845151377397, 0.381830050505119},
-	{0.741531185599394, 0.279705391489277},
-	{0.949107912342759, 0.129484966168870},
-}
-
-// gprep returns a function suitable for Gauss-Legendre integration on [-1, 1].
-func gprep(f func(float64) (float64, error), a, b float64) func(float64) (float64, error) {
-	if a == -1 && b == 1 {
-		return f
-	}
-
-	r := b - a
-	s := b + a
-
-	return func(t float64) (float64, error) {
-		y, err := f((r*t + s) / 2)
-
-		if err != nil {
-			return 0, err
-		}
-
-		return y * r / 2, nil
-	}
-}
-
-// gauss runs Gaussian quadrature using a 7th-order Legendre polynomial
-// on the interval [-1, 1] using a function modified from the original.
-func gauss(f func(float64) (float64, error), a, b float64) (s float64, err error) {
-	g := gprep(f, a, b)
-
-	if improper(f, g, a, b) {
-		return 0, errImproper
-	}
-
-	for _, l := range legendre {
-		y, err := g(l.x)
-
-		if err != nil {
-			return 0, err
-		}
-
-		s += l.a * y
-	}
-
-	return
-}
-
-// improper makes a simple attempt to find an integral we can't handle, such
-// as 1/x or ln x, etc. It's pretty simple and will be easily fooled, but it's
-// all that we have for now. It checks both the original and mapped functions.
-func improper(f, g func(float64) (float64, error), a, b float64) bool {
-	if x, _ := f(a); math.IsNaN(x) || math.IsInf(x, -1) || math.IsInf(x, 1) {
-		return true
-	}
-
-	if x, _ := f(b); math.IsNaN(x) || math.IsInf(x, -1) || math.IsInf(x, 1) {
-		return true
-	}
-
-	if x, _ := g(0); math.IsNaN(x) || math.IsInf(x, -1) || math.IsInf(x, 1) {
-		return true
-	}
-
-	return false
-}
-
 // romberg performs Romberg integration over the interval, possibly shifting
 // the endpoints slightly to avoid improper integrals at those points.
 func romberg(f func(float64) (float64, error), a, b float64) (float64, error) {
@@ -168,9 +91,52 @@ func romberg(f func(float64) (float64, error), a, b float64) (float64, error) {
 	return Rp[steps-1], nil
 }
 
-// integrate tries one method and if that fails, tries, tries yet again Mr Kidd.
+// adaptive recursively breaks down the interval until the parts are very close
+// to the whole, allowing us much better approximation of improper integrals.
+func adaptive(f func(float64) (float64, error), a, b float64, n int) (float64, error) {
+	r, err := romberg(f, a, b)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if n == 0 {
+		return r, nil
+	}
+
+	s, err := romberg(f, a, (a+b)/2)
+
+	if err != nil {
+		return 0, err
+	}
+
+	t, err := romberg(f, (a+b)/2, b)
+
+	if err != nil {
+		return 0, err
+	}
+
+	if r-(s+t) > eps {
+		s, err = adaptive(f, a, (a+b)/2, n-1)
+
+		if err != nil {
+			return 0, err
+		}
+
+		t, err = adaptive(f, (a+b)/2, b, n-1)
+
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return s + t, nil
+}
+
+// integrate now only uses adaptive Romberg integration; very (!!) slow
+// for some improper integrals, but capable of much greater accuracy.
 func integrate(f func(float64) (float64, error), a, b float64) (float64, error) {
-	return romberg(f, a, b)
+	return adaptive(f, a, b, 20)
 }
 
 // ddx uses a five-point centered-difference approximation to find
@@ -376,10 +342,6 @@ var (
 
 	RunIntegrate = BinaryMathFunc("integr", integrate)
 	RunSolve     = BinaryMathFunc("solve", solve)
-
-	RunGauss   = BinaryMathFunc("gaussl", gauss)
-	RunRomberg = BinaryMathFunc("rombrg", romberg)
-	RunNewton  = BinaryMathFunc("newton", newton)
 )
 
 // BinaryMathFunc creates a function from a word by pushing

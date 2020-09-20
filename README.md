@@ -441,6 +441,24 @@ Note that we can create and use a definition on the same line, as in
 
 Also, a word may be used as a symbol by prefixing it with a dollar sign `$`. This is necessary when using a word as an argument to another operation, such as the advanced math operations (see below).
 
+### Local variables in words
+A word definition may include a local variable list
+
+	:name (var...) op op...;
+
+where within the word, each local variable may be used as a read-only symbol (the value is pushed onto the stack without requiring @).
+
+When the local variable list is "executed" a value is popped from the stack and assigned to the variable.
+
+For example,
+
+	> :f (x) 3 $x/;
+	1: <nil>
+	> 4 f
+	2: 0.75
+
+While this example is trivial, local variables are useful in more complex functions, particularly those passed to `solve` and `integr` (see below).
+
 ## Statistics operations
 oak can calculate basic statistics on one or two variables, as well as perform linear regression and calculate the correlation coefficient.
 
@@ -615,7 +633,7 @@ Brent's method assumes _f(a)_ and _f(b)_ have opposite signs; if not, then `solv
 
 Also, Brent's method will return "no solution" if it cannot evaluate the function at one or both of the endpoints. For example, given `f(x) = ln(6x - x**4)` (which is not defined at 0 or 2),
 
-	> :f dup 6* swap sqr sqr - ln;
+	> :f (x) $x 6* $x 4** - ln;
 	1: <nil>
 	> 0 1 $f solve
 	no solution
@@ -636,12 +654,12 @@ Also note that we can solve for roots of a function of a function, such as the d
 
 we can find the maximum, minimum, and inflection point:
 
-	> :f dup dup sqr* swap sqr 2*- 4+;
+	> :f (x) $x 3** $x sqr 2*- 4+;
 	1: <nil>
 	> :g $f ddx;
 	2: <nil>
 	> -0.5 0.5 $g solve
-	3: 0.000
+	3: -0.000
 	> 1 2 $g solve
 	4: 1.333
 	> :h $f d2dx;

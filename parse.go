@@ -21,10 +21,12 @@ type Parser struct {
 	buff    [100]token.Token
 	w       io.Writer
 	word    *Word
+	scope   *Scope
 	line    int
 	base    int
 	debug   bool
 	compile bool
+	scoped  bool
 }
 
 // New returns a new parser using a particular stack machine and scanner.
@@ -44,7 +46,7 @@ func NewParser(m *Machine, s *Scanner, w io.Writer, line int, debug bool) *Parse
 
 // WordParser returns a new parser with tokens from a word
 // definition; it cannot scan for more tokens.
-func WordParser(m *Machine, t []token.Token) *Parser {
+func WordParser(m *Machine, t []token.Token, s *Scope) *Parser {
 	var line int
 
 	if len(t) > 0 {
@@ -59,6 +61,7 @@ func WordParser(m *Machine, t []token.Token) *Parser {
 		base:    m.Base(),
 		debug:   m.debug,
 		compile: true,
+		scope:   s,
 	}
 
 	return &p
@@ -180,8 +183,27 @@ func (p *Parser) evaluate() ([]Expr, error) { // nolint:gocyclo
 				return nil, err
 			}
 
+		case token.LeftParen:
+			// we should only have () lists inside a
+			// word definition, which has a scope
+
+			if p.scope == nil {
+				return nil, fmt.Errorf("invalid locals")
+			}
+
+			p.scoped = true
+
+		case token.RightParen:
+			p.scoped = false
+			e = nil // avoid duplicating last def!
+
 		case token.Identifier:
-			if strings.HasPrefix(t.Text, "$") {
+			if p.scoped {
+				if e, err = p.scope.Add(t.Text); err != nil {
+					p.errorf("bad local: %s", t.Text)
+					return nil, err
+				}
+			} else if strings.HasPrefix(t.Text, "$") {
 				if e, err = p.symbol(t.Text); err != nil {
 					p.errorf("bad symbol: %s", t.Text)
 					return nil, err
@@ -359,12 +381,11 @@ func (p *Parser) symbol(s string) (Expr, error) {
 		}
 
 		// this actually evaluates the value now
-
 		return GetSymbol(s), nil
 	}
 
 	// if it's a word preceded by $, add it as a
-	// symbol so it's not execute yet
+	// symbol so it's not executed yet
 
 	if w := p.machine.Word(s[1:]); w != nil {
 		return WordRef(w.(*Word)), nil
@@ -372,8 +393,14 @@ func (p *Parser) symbol(s string) (Expr, error) {
 
 	// always treat a user-defined variable as a
 	// symbol because it requires store/recall ops
+	// (unless it's a local variable in scope)
 
 	if userVar.MatchString(s) {
+		if p.scope.Has(s) {
+			// local scope wins if it's there
+			return p.scope.GetSymbol(s), nil
+		}
+
 		return GetUserVar(s), nil
 	}
 

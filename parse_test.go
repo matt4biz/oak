@@ -242,7 +242,7 @@ var parseTests = []parseTest{
 	},
 	{
 		name:  "solve",
-		input: `7 fix :g dup dup dup * * + 1-; -1 1 $g solve`,
+		input: `7 fix :g (x) $x sqr $x* $x+ 1-; -1 1 $g solve`,
 		want:  []string{"0.6823278"},
 	},
 	{

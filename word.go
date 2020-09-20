@@ -24,6 +24,7 @@ type Word struct {
 	N string        `json:"name"`
 	T []token.Token `json:"tokens"`
 	E []Expr        `json:"-"`
+	S Scope         `json:"-"`
 }
 
 // Eval runs all the expressions in the word's definition
@@ -70,7 +71,7 @@ func (w *Word) Compile(m *Machine) error {
 		return fmt.Errorf("invalid definition")
 	}
 
-	p := WordParser(m, w.T[2:l-1])
+	p := WordParser(m, w.T[2:l-1], &w.S)
 
 	w.N = w.T[1].Text
 	w.E, err = p.Compile()

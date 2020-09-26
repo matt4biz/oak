@@ -67,4 +67,16 @@ func TestConstants(t *testing.T) {
 	if sEps != "2.718e+03" {
 		t.Errorf("e is wrong: %s", sEps)
 	}
+
+	m.SetFree()
+
+	sEps, err = m.Eval(0, []Expr{eps})
+
+	if err != nil {
+		t.Errorf("invalid e result: %s", err)
+	}
+
+	if sEps != "2.718281828459045" {
+		t.Errorf("e is wrong: %s", sEps)
+	}
 }

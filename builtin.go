@@ -224,6 +224,11 @@ func (m *Machine) RemoveX(x *Value) {
 	m.stats[xsqsum].V = m.stats[xsqsum].V.(float64) - (xf * xf)
 }
 
+func (m *Machine) SetFree() {
+	m.disp = free
+	m.digits = 2
+}
+
 func (m *Machine) SetFixed(d uint) {
 	m.disp = fixed
 	m.digits = d

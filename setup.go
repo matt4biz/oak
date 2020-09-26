@@ -339,6 +339,11 @@ var (
 
 	// DISPLAY
 
+	SetFree ExprFunc = func(m *Machine) error {
+		m.SetFree()
+		return nil
+	}
+
 	SetEngineering ExprFunc = func(m *Machine) error {
 		x := m.Pop()
 
@@ -441,9 +446,10 @@ func (m *Machine) setBuiltins() {
 
 		// DISPLAY
 
-		"fix": SetFixed,
-		"eng": SetEngineering,
-		"sci": SetScientific,
+		"free": SetFree,
+		"fix":  SetFixed,
+		"eng":  SetEngineering,
+		"sci":  SetScientific,
 
 		// STATS
 

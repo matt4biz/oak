@@ -107,6 +107,12 @@ func (a *app) run() error {
 		return fmt.Errorf("home: %s", err)
 	}
 
+	// we should always reload old state before we
+	// pick up any other source of config and/or
+	// run commands
+
+	a.machine.AutoReload()
+
 	if err := a.readConfig(home); err != nil && err != io.EOF {
 		return fmt.Errorf("config: %s", err)
 	}
@@ -147,7 +153,6 @@ func (a *app) run() error {
 // fromReadline runs the REPL and parses one line at a time.
 func (a *app) fromReadline(home string) error {
 	a.machine.SetInteractive()
-	a.machine.AutoReload()
 
 	config := readline.Config{
 		Stdin:                  readline.NewCancelableStdin(a.stdIn),

@@ -4,7 +4,7 @@ version=$(shell git describe --tags --long --dirty 2>/dev/null)
 ## doesn't have the -o option to name the file
 
 oak:
-	go build -ldflags "-X main.version=$(version)" -o $@ ./cmd && mv $@ $(GOPATH)/bin
+	go build -ldflags "-X main.version=$(version)" -o $@ ./cmd && install $@ $(GOPATH)/bin
 
 lint:
 	golangci-lint run

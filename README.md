@@ -590,7 +590,7 @@ The lower bound of the interval must always be pushed onto the stack first, foll
 
 The Romberg method will run until the difference between successive estimates is less than *eps* = 1e-15 (or until it runs over a fixed limit on the number of iterations allowed, currently 24). The adaptive logic will run to a maximum recursive depth of 20.
 
-**NOTE** that the results may be quite off for improper integrals or functions which oscillate wildly in the given interval. Unfortunately, it's just not possible for a calculator to handle all cases, and indeed the user should understand the problem being posed and not blindly trust the machine. See William Kahan's great article "Handheld calculator evaluates integrals", [*Hewlett-Packard Journal* 31:8](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1980-08.pdf) (Aug 1980), pp. 23-32.
+**NOTE** that the results may be quite off for improper integrals or functions which oscillate wildly in the given interval. Unfortunately, it's just not possible for a calculator to handle all cases, and indeed the user should understand the problem being posed and not blindly trust the machine. See William Kahan's great article "Handheld calculator evaluates integrals", [*Hewlett-Packard Journal* 31:8](http://hparchive.com/Journals/HPJ-1980-08.pdf) (Aug 1980), pp. 23-32.
 
 For example, the logarithm and reciprocal functions starting at 0 are improper:
 
@@ -644,7 +644,7 @@ Also, Brent's method will return "no solution" if it cannot evaluate the functio
 	> 1 1.8 $f solve
 	5: 1.75777
 
-See also William Kahan's article "Personal calculator has key to solve any equation f(x) = 0", [*Hewlett-Packard Journal* 30:12](https://www.hpl.hp.com/hpjournal/pdfs/IssuePDFs/1979-12.pdf) (Dec 1979), pp. 20-26.
+See also William Kahan's article "Personal calculator has key to solve any equation f(x) = 0", [*Hewlett-Packard Journal* 30:12](http://hparchive.com/Journals/HPJ-1979-12.pdf) (Dec 1979), pp. 20-26.
 
 Also note that we can solve for roots of a function of a function, such as the derivatve. For example, given `f(x) = x**3 - 2x**2 + 4` where `g(x) = f'(x)` and `h(x) = f''(x)`
 
